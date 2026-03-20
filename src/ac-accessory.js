@@ -66,6 +66,7 @@ class AcFreedomAccessory {
 
     this.setupAccessoryInfo();
     this.setupHeaterCooler();
+    this.reorderLinkedServices();
     this.setupFanService();
     this.setupPresetSwitches();
     this.setupDisplaySwitch();
@@ -178,12 +179,29 @@ class AcFreedomAccessory {
       });
   }
 
+  // ── Reorder linked services ───────────────────────────────────
+  // Remove cached linked services from the accessory so they are
+  // re-added in the correct display order: Fan → Presets → Display.
+  reorderLinkedServices() {
+    const ids = [
+      { type: this.Service.Fanv2, subtype: 'fan' },
+      { type: this.Service.Switch, subtype: 'sleep' },
+      { type: this.Service.Switch, subtype: 'health' },
+      { type: this.Service.Switch, subtype: 'eco' },
+      { type: this.Service.Switch, subtype: 'clean' },
+      { type: this.Service.Switch, subtype: 'display' },
+    ];
+    for (const { type, subtype } of ids) {
+      const svc = this.accessory.getServiceById(type, subtype);
+      if (svc) this.accessory.removeService(svc);
+    }
+  }
+
   // ── Fan Service (linked to HeaterCooler) ────────────────────────
   setupFanService() {
     const C = this.Characteristic;
 
-    this.fanService = this.accessory.getServiceById(this.Service.Fanv2, 'fan')
-      || this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
+    this.fanService = this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
 
     // Fan Active follows AC power
     this.fanService.getCharacteristic(C.Active)
@@ -220,8 +238,7 @@ class AcFreedomAccessory {
         continue;
       }
 
-      const switchService = this.accessory.getServiceById(this.Service.Switch, key)
-        || this.accessory.addService(this.Service.Switch, cfg.label, key);
+      const switchService = this.accessory.addService(this.Service.Switch, cfg.label, key);
 
       switchService.setCharacteristic(this.Characteristic.Name, cfg.label);
 
@@ -262,8 +279,7 @@ class AcFreedomAccessory {
       return;
     }
 
-    this.displaySwitch = this.accessory.getServiceById(this.Service.Switch, 'display')
-      || this.accessory.addService(this.Service.Switch, 'Display', 'display');
+    this.displaySwitch = this.accessory.addService(this.Service.Switch, 'Display', 'display');
 
     this.displaySwitch.setCharacteristic(this.Characteristic.Name, 'Display');
 
