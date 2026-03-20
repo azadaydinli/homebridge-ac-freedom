@@ -93,6 +93,11 @@
                 "clean": { "title": "Self Clean", "type": "boolean", "default": true }
               }
             },
+            "showComfWind": {
+              "title": "Show Comfortable Wind Switch",
+              "type": "boolean",
+              "default": true
+            },
             "showDisplay": {
               "title": "Show Display Switch",
               "type": "boolean",

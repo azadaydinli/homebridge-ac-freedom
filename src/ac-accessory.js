@@ -21,6 +21,7 @@ const CLOUD = {
   HEALTH: 'ac_health',
   ECO: 'mldprf',
   CLEAN: 'ac_clean',
+  COMFWIND: 'comfwind',
   DISPLAY: 'scrdisp',
 };
 
@@ -54,6 +55,7 @@ class AcFreedomAccessory {
       health: false,
       eco: false,
       clean: false,
+      comfwind: false,
       display: true,
     };
 
@@ -68,6 +70,7 @@ class AcFreedomAccessory {
     this.setupHeaterCooler();
     this.setupFanService();
     this.setupPresetSwitches();
+    this.setupComfWindSwitch();
     this.setupDisplaySwitch();
 
     // Start polling
@@ -249,6 +252,29 @@ class AcFreedomAccessory {
     }
   }
 
+  // ── Comfortable Wind Switch (linked to HeaterCooler) ────────────
+  setupComfWindSwitch() {
+    if (this.config.showComfWind === false) {
+      const existing = this.accessory.getServiceById(this.Service.Switch, 'comfwind');
+      if (existing) this.accessory.removeService(existing);
+      return;
+    }
+
+    this.comfWindSwitch = this.accessory.getServiceById(this.Service.Switch, 'comfwind')
+      || this.accessory.addService(this.Service.Switch, 'Comfortable Wind', 'comfwind');
+
+    this.comfWindSwitch.setCharacteristic(this.Characteristic.Name, 'Comfortable Wind');
+
+    this.comfWindSwitch.getCharacteristic(this.Characteristic.On)
+      .onGet(() => this.state.comfwind)
+      .onSet(async (value) => {
+        this.state.comfwind = value;
+        await this.sendComfWind(value);
+      });
+
+    this.heaterCooler.addLinkedService(this.comfWindSwitch);
+  }
+
   // ── Display Switch (linked to HeaterCooler) ────────────────────
   setupDisplaySwitch() {
     if (this.config.showDisplay === false) {
@@ -318,8 +344,12 @@ class AcFreedomAccessory {
       this.state.health = !!params[CLOUD.HEALTH];
       this.state.eco = !!params[CLOUD.ECO];
       this.state.clean = !!params[CLOUD.CLEAN];
+      this.state.comfwind = !!params[CLOUD.COMFWIND];
       this.state.display = !!params[CLOUD.DISPLAY];
     } catch (err) {
+      // Transient "server busy" errors — silently skip this cycle
+      if (err.message && err.message.includes('server busy')) return;
+      // Re-login on token expiry
       if (err.message && err.message.includes('token')) {
         const cloud = this.config.cloud;
         await api.login(cloud.email, cloud.password);
@@ -391,6 +421,10 @@ class AcFreedomAccessory {
 
     for (const [key, svc] of Object.entries(this.presetSwitches || {})) {
       svc.updateCharacteristic(C.On, this.state[key]);
+    }
+
+    if (this.comfWindSwitch) {
+      this.comfWindSwitch.updateCharacteristic(C.On, this.state.comfwind);
     }
 
     if (this.displaySwitch) {
@@ -476,6 +510,15 @@ class AcFreedomAccessory {
       api.state.clean = 0;
       if (on) api.state[cfg.localAttr] = 1;
       await api.setState();
+    }
+  }
+
+  async sendComfWind(on) {
+    if (this.deviceApi.type === 'cloud') {
+      await this.cloudSet({ [CLOUD.COMFWIND]: on ? 1 : 0 });
+    } else {
+      this.deviceApi.api.state.comfwind = on ? 1 : 0;
+      await this.deviceApi.api.setState();
     }
   }
 

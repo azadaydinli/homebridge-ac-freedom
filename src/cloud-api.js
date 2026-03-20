@@ -253,7 +253,7 @@ class AuxCloudAPI {
       params = [
         'pwr', 'ac_mode', 'temp', 'envtemp', 'ac_mark',
         'ac_vdir', 'ac_hdir', 'ac_slp', 'ac_health',
-        'mldprf', 'ac_clean', 'scrdisp',
+        'mldprf', 'ac_clean', 'comfwind', 'scrdisp',
       ];
     }
     return this._actDeviceParams(device, 'get', params);
