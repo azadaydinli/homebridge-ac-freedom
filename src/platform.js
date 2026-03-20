@@ -43,36 +43,13 @@ class AcFreedomPlatform {
   }
 
   async setupDevice(deviceConfig) {
-    // Layout version embedded in the UUID seed so that changing it
-    // forces HomeKit to create a brand-new accessory with the
-    // correct linked-service order.  Bump this when the service
-    // layout changes.
-    const LAYOUT_VERSION = 2;
+    const uuid = this.api.hap.uuid.generate(
+      deviceConfig.connection === 'cloud'
+        ? `ac-freedom-cloud-${deviceConfig.cloud?.email}-${deviceConfig.cloud?.deviceId || 'auto'}`
+        : `ac-freedom-local-${deviceConfig.local?.ip}-${deviceConfig.local?.mac}`,
+    );
 
-    const seed = deviceConfig.connection === 'cloud'
-      ? `ac-freedom-cloud-${deviceConfig.cloud?.email}-${deviceConfig.cloud?.deviceId || 'auto'}`
-      : `ac-freedom-local-${deviceConfig.local?.ip}-${deviceConfig.local?.mac}`;
-
-    const uuid = this.api.hap.uuid.generate(`${seed}-v${LAYOUT_VERSION}`);
-
-    // Clean up any accessory with the OLD UUID (before version suffix)
-    const oldUuid = this.api.hap.uuid.generate(seed);
-    const staleAccessory = this.accessories.get(oldUuid);
-    if (staleAccessory) {
-      this.log.info('Removing old accessory (layout migration): %s', deviceConfig.name);
-      this.api.unregisterPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [staleAccessory]);
-      this.accessories.delete(oldUuid);
-    }
-    // Also clean up v1 UUID if present
-    const v1Uuid = this.api.hap.uuid.generate(`${seed}-v1`);
-    const v1Accessory = this.accessories.get(v1Uuid);
-    if (v1Accessory) {
-      this.log.info('Removing v1 accessory (layout migration): %s', deviceConfig.name);
-      this.api.unregisterPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [v1Accessory]);
-      this.accessories.delete(v1Uuid);
-    }
-
-    let existingAccessory = this.accessories.get(uuid);
+    const existingAccessory = this.accessories.get(uuid);
     let deviceApi;
 
     if (deviceConfig.connection === 'cloud') {
@@ -89,10 +66,7 @@ class AcFreedomPlatform {
       this.api.updatePlatformAccessories([existingAccessory]);
     } else {
       this.log.info('Adding new accessory: %s', deviceConfig.name);
-      const accessory = new this.api.platformAccessory(
-        deviceConfig.name,
-        uuid,
-      );
+      const accessory = new this.api.platformAccessory(deviceConfig.name, uuid);
       new AcFreedomAccessory(this, accessory, deviceConfig, deviceApi);
       this.api.registerPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [accessory]);
       this.accessories.set(uuid, accessory);
@@ -127,7 +101,6 @@ class AcFreedomPlatform {
         return null;
       }
 
-      // Use first matching device
       const device = devices[0];
       this.log.info('Cloud device: %s (%s)', device.friendlyName || 'AUX AC', device.endpointId);
       return { type: 'cloud', api, device };

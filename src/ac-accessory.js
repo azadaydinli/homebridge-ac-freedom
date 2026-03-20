@@ -1,9 +1,9 @@
 /**
  * AcFreedomAccessory
  *
- * Exposes a HeaterCooler service with linked Switch services for preset modes.
- * Presets (sleep, health, eco, clean) and display appear as toggles inside
- * the climate card in HomeKit.
+ * Exposes a HeaterCooler service with linked Fanv2 and Switch services.
+ * Fan speed, preset modes (sleep, health, eco, clean) and display toggle
+ * appear as tiles inside the climate card in HomeKit.
  */
 
 'use strict';
@@ -66,11 +66,9 @@ class AcFreedomAccessory {
 
     this.setupAccessoryInfo();
     this.setupHeaterCooler();
-    this.purgeLinkedServices();
     this.setupFanService();
     this.setupPresetSwitches();
     this.setupDisplaySwitch();
-    this.enforceServiceOrder();
 
     // Start polling
     const interval = (config.pollInterval || 30) * 1000;
@@ -179,52 +177,12 @@ class AcFreedomAccessory {
       });
   }
 
-  // ── Purge linked services ────────────────────────────────────
-  // Remove every cached linked service from the accessory AND clear
-  // the HeaterCooler's linked list so they are re-created fresh in
-  // the correct display order: Fan → Presets → Display.
-  purgeLinkedServices() {
-    // 1. Clear HeaterCooler's linked services array
-    this.heaterCooler.linkedServices = [];
-
-    // 2. Remove cached services from the accessory
-    const subtypes = ['fan', 'sleep', 'health', 'eco', 'clean', 'display'];
-    for (const subtype of subtypes) {
-      const type = subtype === 'fan' ? this.Service.Fanv2 : this.Service.Switch;
-      const svc = this.accessory.getServiceById(type, subtype);
-      if (svc) this.accessory.removeService(svc);
-    }
-  }
-
-  // ── Enforce service order in accessory ──────────────────────
-  // HomeKit reads the services array order from the HAP database to
-  // determine tile layout.  We sort the array so that Fan always
-  // comes right after HeaterCooler, followed by preset switches and
-  // the display switch.
-  enforceServiceOrder() {
-    const S = this.Service;
-    const rank = (svc) => {
-      if (svc.UUID === S.AccessoryInformation.UUID) return 0;
-      if (svc.UUID === S.HeaterCooler.UUID) return 1;
-      if (svc.UUID === S.Fanv2.UUID) return 2;            // Fan first
-      if (svc.UUID === S.Switch.UUID) {
-        const sub = svc.subtype;
-        if (sub === 'sleep') return 3;
-        if (sub === 'health') return 4;
-        if (sub === 'eco') return 5;
-        if (sub === 'clean') return 6;
-        if (sub === 'display') return 7;
-      }
-      return 99;
-    };
-    this.accessory.services.sort((a, b) => rank(a) - rank(b));
-  }
-
   // ── Fan Service (linked to HeaterCooler) ────────────────────────
   setupFanService() {
     const C = this.Characteristic;
 
-    this.fanService = this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
+    this.fanService = this.accessory.getServiceById(this.Service.Fanv2, 'fan')
+      || this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
 
     // Fan Active follows AC power
     this.fanService.getCharacteristic(C.Active)
@@ -234,7 +192,7 @@ class AcFreedomAccessory {
         await this.sendPower(this.state.power);
       });
 
-    // Rotation speed: 0=auto, 17=mute, 33=low, 50=med, 67=high, 100=turbo
+    // Rotation speed: 0=auto, 20=mute, 40=low, 60=med, 80=high, 100=turbo
     this.fanService.getCharacteristic(C.RotationSpeed)
       .setProps({ minValue: 0, maxValue: 100, minStep: 1 })
       .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
@@ -255,20 +213,19 @@ class AcFreedomAccessory {
 
     for (const [key, cfg] of Object.entries(this.presetConfigs)) {
       if (!presets[key]) {
-        // Remove if previously existed
         const existing = this.accessory.getServiceById(this.Service.Switch, key);
         if (existing) this.accessory.removeService(existing);
         continue;
       }
 
-      const switchService = this.accessory.addService(this.Service.Switch, cfg.label, key);
+      const switchService = this.accessory.getServiceById(this.Service.Switch, key)
+        || this.accessory.addService(this.Service.Switch, cfg.label, key);
 
       switchService.setCharacteristic(this.Characteristic.Name, cfg.label);
 
       switchService.getCharacteristic(this.Characteristic.On)
         .onGet(() => this.state[key])
         .onSet(async (value) => {
-          // Turn off other presets when activating one
           if (value) {
             for (const otherKey of Object.keys(this.presetConfigs)) {
               if (otherKey !== key) this.state[otherKey] = false;
@@ -276,11 +233,9 @@ class AcFreedomAccessory {
           }
           this.state[key] = value;
           await this.sendPreset(key, value);
-          // Update other switches UI
           this.refreshPresetSwitches(key);
         });
 
-      // Link to HeaterCooler so it appears inside the climate card
       this.heaterCooler.addLinkedService(switchService);
       this.presetSwitches[key] = switchService;
     }
@@ -302,7 +257,8 @@ class AcFreedomAccessory {
       return;
     }
 
-    this.displaySwitch = this.accessory.addService(this.Service.Switch, 'Display', 'display');
+    this.displaySwitch = this.accessory.getServiceById(this.Service.Switch, 'display')
+      || this.accessory.addService(this.Service.Switch, 'Display', 'display');
 
     this.displaySwitch.setCharacteristic(this.Characteristic.Name, 'Display');
 
@@ -364,7 +320,6 @@ class AcFreedomAccessory {
       this.state.clean = !!params[CLOUD.CLEAN];
       this.state.display = !!params[CLOUD.DISPLAY];
     } catch (err) {
-      // Re-login on token expiry
       if (err.message && err.message.includes('token')) {
         const cloud = this.config.cloud;
         await api.login(cloud.email, cloud.password);
@@ -427,7 +382,6 @@ class AcFreedomAccessory {
     this.heaterCooler.updateCharacteristic(C.SwingMode,
       (this.state.swingV || this.state.swingH) ? C.SwingMode.SWING_ENABLED : C.SwingMode.SWING_DISABLED);
 
-    // Update fan service
     if (this.fanService) {
       this.fanService.updateCharacteristic(C.Active,
         this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE);
@@ -435,12 +389,10 @@ class AcFreedomAccessory {
         this.fanSpeedToPercent(this.state.fanSpeed));
     }
 
-    // Update preset switches
     for (const [key, svc] of Object.entries(this.presetSwitches || {})) {
       svc.updateCharacteristic(C.On, this.state[key]);
     }
 
-    // Update display switch
     if (this.displaySwitch) {
       this.displaySwitch.updateCharacteristic(C.On, this.state.display);
     }
@@ -460,7 +412,6 @@ class AcFreedomAccessory {
     if (this.deviceApi.type === 'cloud') {
       await this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode });
     } else {
-      // Map cloud mode to local mode
       const localModeMap = {
         [CLOUD_MODE.AUTO]: 8, [CLOUD_MODE.COOL]: 1,
         [CLOUD_MODE.HEAT]: 4, [CLOUD_MODE.DRY]: 2, [CLOUD_MODE.FAN]: 6,
@@ -509,7 +460,6 @@ class AcFreedomAccessory {
     if (!cfg) return;
 
     if (this.deviceApi.type === 'cloud') {
-      // Turn off all presets, then set the target one
       const update = {
         [CLOUD.SLEEP]: 0,
         [CLOUD.HEALTH]: 0,

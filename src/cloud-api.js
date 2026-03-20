@@ -1,7 +1,6 @@
 /**
  * AUX Cloud API client
  *
- * Ported from the Python ac_freedom cloud_api module.
  * Handles authentication, device discovery, and parameter get/set
  * via the BroadLink SmartHomeCS cloud infrastructure.
  */
@@ -36,13 +35,12 @@ const API_URLS = {
   rus: 'https://app-service-rus-b8bbc3be.smarthomecs.com',
 };
 
-// ── AES CBC encryption with zero padding ─────────────────────────
-// Always pad to the next block boundary (adds a full 16-byte block
-// when data is already aligned).  This matches the Python
-// PyCryptodome implementation used by the AUX Cloud reference client.
+// ── AES-128-CBC encryption with zero padding ─────────────────────
+// Always pads to the next block boundary (adds a full 16-byte block
+// when data is already aligned), matching PyCryptodome behaviour.
 function encryptAesCbc(iv, key, data) {
   const blockSize = 16;
-  const padLen = blockSize - (data.length % blockSize);   // always ≥ 1
+  const padLen = blockSize - (data.length % blockSize);
   const padded = Buffer.concat([data, Buffer.alloc(padLen)]);
   const cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
   cipher.setAutoPadding(false);
@@ -52,19 +50,14 @@ function encryptAesCbc(iv, key, data) {
 // ── HTTP request helper ──────────────────────────────────────────
 function httpRequest(url, options, body) {
   return new Promise((resolve, reject) => {
-    const parsedUrl = new URL(url);
-    const mod = parsedUrl.protocol === 'https:' ? https : http;
+    const mod = new URL(url).protocol === 'https:' ? https : http;
 
-    // Compute Content-Length so the server receives a fixed-length
-    // body instead of chunked Transfer-Encoding.
     const bodyBuf = body
       ? (Buffer.isBuffer(body) ? body : Buffer.from(body, 'utf8'))
       : null;
 
     const headers = { ...(options.headers || {}) };
-    if (bodyBuf) {
-      headers['Content-Length'] = bodyBuf.length;
-    }
+    if (bodyBuf) headers['Content-Length'] = bodyBuf.length;
 
     const req = mod.request(url, {
       ...options,
@@ -72,30 +65,22 @@ function httpRequest(url, options, body) {
       rejectUnauthorized: false,
     }, (res) => {
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
-        try {
-          resolve(JSON.parse(data));
-        } catch {
-          reject(new Error(`Invalid JSON response: ${data.substring(0, 200)}`));
-        }
+        try { resolve(JSON.parse(data)); }
+        catch { reject(new Error(`Invalid JSON response: ${data.substring(0, 200)}`)); }
       });
     });
 
     req.on('error', reject);
-    req.setTimeout(15000, () => {
-      req.destroy();
-      reject(new Error('Request timeout'));
-    });
+    req.setTimeout(15000, () => { req.destroy(); reject(new Error('Request timeout')); });
 
-    if (bodyBuf) {
-      req.end(bodyBuf);
-    } else {
-      req.end();
-    }
+    if (bodyBuf) req.end(bodyBuf);
+    else req.end();
   });
 }
 
+// ── AuxCloudAPI ──────────────────────────────────────────────────
 class AuxCloudAPI {
   constructor(region = 'eu') {
     this.url = API_URLS[region] || API_URLS.eu;
@@ -124,10 +109,7 @@ class AuxCloudAPI {
 
   async _request(method, endpoint, { headers, body, params } = {}) {
     let url = `${this.url}/${endpoint}`;
-    if (params) {
-      const qs = new URLSearchParams(params).toString();
-      url += `?${qs}`;
-    }
+    if (params) url += `?${new URLSearchParams(params)}`;
     return httpRequest(url, { method, headers }, body);
   }
 
@@ -141,13 +123,9 @@ class AuxCloudAPI {
       .update(`${password}${PASSWORD_SALT}`)
       .digest('hex');
 
-    const payload = {
-      email,
-      password: shaPw,
-      companyid: COMPANY_ID,
-      lid: LICENSE_ID,
-    };
+    const payload = { email, password: shaPw, companyid: COMPANY_ID, lid: LICENSE_ID };
     const bodyJson = JSON.stringify(payload);
+
     const token = crypto.createHash('md5')
       .update(`${bodyJson}${BODY_KEY}`)
       .digest('hex');
@@ -175,9 +153,7 @@ class AuxCloudAPI {
     const result = await this._request('POST', 'appsync/group/member/getfamilylist', {
       headers: this._headers(),
     });
-    if (result.status === 0) {
-      return result.data.familyList || [];
-    }
+    if (result.status === 0) return result.data.familyList || [];
     throw new Error(`Get families failed: ${JSON.stringify(result)}`);
   }
 
@@ -194,7 +170,6 @@ class AuxCloudAPI {
 
     const devices = result.data?.endpoints || [];
 
-    // Fetch params for each device
     for (const dev of devices) {
       dev.params = {};
       try {
@@ -208,7 +183,7 @@ class AuxCloudAPI {
     return devices;
   }
 
-  // ── Get/Set device params ──────────────────────────────────────
+  // ── Get / Set device params ────────────────────────────────────
   async _actDeviceParams(device, act, params = [], vals = []) {
     const cookieRaw = JSON.parse(Buffer.from(device.cookie, 'base64').toString());
     const mappedCookie = Buffer.from(JSON.stringify({
@@ -245,12 +220,7 @@ class AuxCloudAPI {
           cookie: {},
           devSession: device.devSession,
         },
-        payload: {
-          act,
-          params,
-          vals,
-          did: device.endpointId,
-        },
+        payload: { act, params, vals, did: device.endpointId },
       },
     };
 
@@ -279,7 +249,6 @@ class AuxCloudAPI {
   }
 
   async getDeviceParams(device, params) {
-    // Default: fetch all AC params
     if (!params) {
       params = [
         'pwr', 'ac_mode', 'temp', 'envtemp', 'ac_mark',
@@ -292,7 +261,7 @@ class AuxCloudAPI {
 
   async setDeviceParams(device, values) {
     const params = Object.keys(values);
-    const vals = Object.values(values).map(v => [{ idx: 1, val: v }]);
+    const vals = Object.values(values).map((v) => [{ idx: 1, val: v }]);
     return this._actDeviceParams(device, 'set', params, vals);
   }
 }
