@@ -66,6 +66,7 @@ class AcFreedomAccessory {
 
     this.setupAccessoryInfo();
     this.setupHeaterCooler();
+    this.setupFanService();
     this.setupPresetSwitches();
     this.setupDisplaySwitch();
 
@@ -164,15 +165,6 @@ class AcFreedomAccessory {
         await this.sendTemperature(value);
       });
 
-    // Rotation speed (fan: 0=auto, 20=mute, 40=low, 60=med, 80=high, 100=turbo)
-    this.heaterCooler.getCharacteristic(C.RotationSpeed)
-      .setProps({ minValue: 0, maxValue: 100, minStep: 20 })
-      .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
-      .onSet(async (value) => {
-        this.state.fanSpeed = this.percentToFanSpeed(value);
-        await this.sendFanSpeed(this.state.fanSpeed);
-      });
-
     // Swing mode
     this.heaterCooler.getCharacteristic(C.SwingMode)
       .onGet(() => (this.state.swingV || this.state.swingH)
@@ -184,6 +176,34 @@ class AcFreedomAccessory {
         this.state.swingH = on;
         await this.sendSwing(on, on);
       });
+  }
+
+  // ── Fan Service (linked to HeaterCooler) ────────────────────────
+  setupFanService() {
+    const C = this.Characteristic;
+
+    this.fanService = this.accessory.getServiceById(this.Service.Fanv2, 'fan')
+      || this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
+
+    // Fan Active follows AC power
+    this.fanService.getCharacteristic(C.Active)
+      .onGet(() => this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE)
+      .onSet(async (value) => {
+        this.state.power = value === C.Active.ACTIVE;
+        await this.sendPower(this.state.power);
+      });
+
+    // Rotation speed: 0=auto, 17=mute, 33=low, 50=med, 67=high, 100=turbo
+    this.fanService.getCharacteristic(C.RotationSpeed)
+      .setProps({ minValue: 0, maxValue: 100, minStep: 1 })
+      .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
+      .onSet(async (value) => {
+        this.state.fanSpeed = this.percentToFanSpeed(value);
+        await this.sendFanSpeed(this.state.fanSpeed);
+      });
+
+    // Link fan to HeaterCooler so it appears inside the climate card
+    this.heaterCooler.addLinkedService(this.fanService);
   }
 
   // ── Preset Switches (linked to HeaterCooler) ──────────────────
@@ -365,9 +385,16 @@ class AcFreedomAccessory {
     this.heaterCooler.updateCharacteristic(C.CurrentTemperature, this.state.currentTemp);
     this.heaterCooler.updateCharacteristic(C.CoolingThresholdTemperature, this.state.targetTemp);
     this.heaterCooler.updateCharacteristic(C.HeatingThresholdTemperature, this.state.targetTemp);
-    this.heaterCooler.updateCharacteristic(C.RotationSpeed, this.fanSpeedToPercent(this.state.fanSpeed));
     this.heaterCooler.updateCharacteristic(C.SwingMode,
       (this.state.swingV || this.state.swingH) ? C.SwingMode.SWING_ENABLED : C.SwingMode.SWING_DISABLED);
+
+    // Update fan service
+    if (this.fanService) {
+      this.fanService.updateCharacteristic(C.Active,
+        this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE);
+      this.fanService.updateCharacteristic(C.RotationSpeed,
+        this.fanSpeedToPercent(this.state.fanSpeed));
+    }
 
     // Update preset switches
     for (const [key, svc] of Object.entries(this.presetSwitches || {})) {
