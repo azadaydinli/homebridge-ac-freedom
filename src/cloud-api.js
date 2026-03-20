@@ -37,9 +37,12 @@ const API_URLS = {
 };
 
 // ── AES CBC encryption with zero padding ─────────────────────────
+// Always pad to the next block boundary (adds a full 16-byte block
+// when data is already aligned).  This matches the Python
+// PyCryptodome implementation used by the AUX Cloud reference client.
 function encryptAesCbc(iv, key, data) {
   const blockSize = 16;
-  const padLen = (blockSize - (data.length % blockSize)) % blockSize;
+  const padLen = blockSize - (data.length % blockSize);   // always ≥ 1
   const padded = Buffer.concat([data, Buffer.alloc(padLen)]);
   const cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
   cipher.setAutoPadding(false);

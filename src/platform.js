@@ -43,11 +43,34 @@ class AcFreedomPlatform {
   }
 
   async setupDevice(deviceConfig) {
-    const uuid = this.api.hap.uuid.generate(
-      deviceConfig.connection === 'cloud'
-        ? `ac-freedom-cloud-${deviceConfig.cloud?.email}-${deviceConfig.cloud?.deviceId || 'auto'}`
-        : `ac-freedom-local-${deviceConfig.local?.ip}-${deviceConfig.local?.mac}`
-    );
+    // Layout version embedded in the UUID seed so that changing it
+    // forces HomeKit to create a brand-new accessory with the
+    // correct linked-service order.  Bump this when the service
+    // layout changes.
+    const LAYOUT_VERSION = 2;
+
+    const seed = deviceConfig.connection === 'cloud'
+      ? `ac-freedom-cloud-${deviceConfig.cloud?.email}-${deviceConfig.cloud?.deviceId || 'auto'}`
+      : `ac-freedom-local-${deviceConfig.local?.ip}-${deviceConfig.local?.mac}`;
+
+    const uuid = this.api.hap.uuid.generate(`${seed}-v${LAYOUT_VERSION}`);
+
+    // Clean up any accessory with the OLD UUID (before version suffix)
+    const oldUuid = this.api.hap.uuid.generate(seed);
+    const staleAccessory = this.accessories.get(oldUuid);
+    if (staleAccessory) {
+      this.log.info('Removing old accessory (layout migration): %s', deviceConfig.name);
+      this.api.unregisterPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [staleAccessory]);
+      this.accessories.delete(oldUuid);
+    }
+    // Also clean up v1 UUID if present
+    const v1Uuid = this.api.hap.uuid.generate(`${seed}-v1`);
+    const v1Accessory = this.accessories.get(v1Uuid);
+    if (v1Accessory) {
+      this.log.info('Removing v1 accessory (layout migration): %s', deviceConfig.name);
+      this.api.unregisterPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [v1Accessory]);
+      this.accessories.delete(v1Uuid);
+    }
 
     let existingAccessory = this.accessories.get(uuid);
     let deviceApi;
@@ -60,16 +83,6 @@ class AcFreedomPlatform {
 
     if (!deviceApi) return;
 
-    // ── One-time migration: remove old cached accessory so linked
-    //    services are re-created in the correct display order.
-    const LAYOUT_VERSION = 2;
-    if (existingAccessory && existingAccessory.context.layoutVersion !== LAYOUT_VERSION) {
-      this.log.info('Migrating accessory for correct service order: %s', deviceConfig.name);
-      this.api.unregisterPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [existingAccessory]);
-      this.accessories.delete(uuid);
-      existingAccessory = null;
-    }
-
     if (existingAccessory) {
       this.log.info('Updating existing accessory: %s', deviceConfig.name);
       new AcFreedomAccessory(this, existingAccessory, deviceConfig, deviceApi);
@@ -80,7 +93,6 @@ class AcFreedomPlatform {
         deviceConfig.name,
         uuid,
       );
-      accessory.context.layoutVersion = LAYOUT_VERSION;
       new AcFreedomAccessory(this, accessory, deviceConfig, deviceApi);
       this.api.registerPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [accessory]);
       this.accessories.set(uuid, accessory);
