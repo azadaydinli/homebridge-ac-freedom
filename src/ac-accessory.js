@@ -66,10 +66,11 @@ class AcFreedomAccessory {
 
     this.setupAccessoryInfo();
     this.setupHeaterCooler();
-    this.reorderLinkedServices();
+    this.purgeLinkedServices();
     this.setupFanService();
     this.setupPresetSwitches();
     this.setupDisplaySwitch();
+    this.enforceServiceOrder();
 
     // Start polling
     const interval = (config.pollInterval || 30) * 1000;
@@ -178,28 +179,45 @@ class AcFreedomAccessory {
       });
   }
 
-  // ── Reorder linked services ───────────────────────────────────
-  // Remove cached linked services from both the accessory and the
-  // HeaterCooler so they are re-added in the correct display order:
-  // Fan → Presets → Display.
-  reorderLinkedServices() {
-    // Clear HeaterCooler's linked services list to reset display order
-    if (this.heaterCooler.linkedServices) {
-      this.heaterCooler.linkedServices = [];
-    }
+  // ── Purge linked services ────────────────────────────────────
+  // Remove every cached linked service from the accessory AND clear
+  // the HeaterCooler's linked list so they are re-created fresh in
+  // the correct display order: Fan → Presets → Display.
+  purgeLinkedServices() {
+    // 1. Clear HeaterCooler's linked services array
+    this.heaterCooler.linkedServices = [];
 
-    const ids = [
-      { type: this.Service.Fanv2, subtype: 'fan' },
-      { type: this.Service.Switch, subtype: 'sleep' },
-      { type: this.Service.Switch, subtype: 'health' },
-      { type: this.Service.Switch, subtype: 'eco' },
-      { type: this.Service.Switch, subtype: 'clean' },
-      { type: this.Service.Switch, subtype: 'display' },
-    ];
-    for (const { type, subtype } of ids) {
+    // 2. Remove cached services from the accessory
+    const subtypes = ['fan', 'sleep', 'health', 'eco', 'clean', 'display'];
+    for (const subtype of subtypes) {
+      const type = subtype === 'fan' ? this.Service.Fanv2 : this.Service.Switch;
       const svc = this.accessory.getServiceById(type, subtype);
       if (svc) this.accessory.removeService(svc);
     }
+  }
+
+  // ── Enforce service order in accessory ──────────────────────
+  // HomeKit reads the services array order from the HAP database to
+  // determine tile layout.  We sort the array so that Fan always
+  // comes right after HeaterCooler, followed by preset switches and
+  // the display switch.
+  enforceServiceOrder() {
+    const S = this.Service;
+    const rank = (svc) => {
+      if (svc.UUID === S.AccessoryInformation.UUID) return 0;
+      if (svc.UUID === S.HeaterCooler.UUID) return 1;
+      if (svc.UUID === S.Fanv2.UUID) return 2;            // Fan first
+      if (svc.UUID === S.Switch.UUID) {
+        const sub = svc.subtype;
+        if (sub === 'sleep') return 3;
+        if (sub === 'health') return 4;
+        if (sub === 'eco') return 5;
+        if (sub === 'clean') return 6;
+        if (sub === 'display') return 7;
+      }
+      return 99;
+    };
+    this.accessory.services.sort((a, b) => rank(a) - rank(b));
   }
 
   // ── Fan Service (linked to HeaterCooler) ────────────────────────
