@@ -94,7 +94,6 @@ class AcFreedomAccessory {
       || this.accessory.addService(this.Service.HeaterCooler, this.config.name);
 
     const C = this.Characteristic;
-    const hvac = this.config.hvacModes || { auto: true, cool: true, heat: true };
 
     // Active (on/off)
     this.heaterCooler.getCharacteristic(C.Active)
@@ -115,15 +114,15 @@ class AcFreedomAccessory {
         }
       });
 
-    // Target state (auto/heat/cool)
-    const validStates = [];
-    if (hvac.auto) validStates.push(C.TargetHeaterCoolerState.AUTO);
-    if (hvac.heat) validStates.push(C.TargetHeaterCoolerState.HEAT);
-    if (hvac.cool) validStates.push(C.TargetHeaterCoolerState.COOL);
-    if (validStates.length === 0) validStates.push(C.TargetHeaterCoolerState.AUTO);
-
+    // Target state – all HVAC modes always enabled (auto/heat/cool)
     this.heaterCooler.getCharacteristic(C.TargetHeaterCoolerState)
-      .setProps({ validValues: validStates })
+      .setProps({
+        validValues: [
+          C.TargetHeaterCoolerState.AUTO,
+          C.TargetHeaterCoolerState.HEAT,
+          C.TargetHeaterCoolerState.COOL,
+        ],
+      })
       .onGet(() => {
         switch (this.state.mode) {
           case CLOUD_MODE.HEAT: return C.TargetHeaterCoolerState.HEAT;
@@ -180,9 +179,15 @@ class AcFreedomAccessory {
   }
 
   // ── Reorder linked services ───────────────────────────────────
-  // Remove cached linked services from the accessory so they are
-  // re-added in the correct display order: Fan → Presets → Display.
+  // Remove cached linked services from both the accessory and the
+  // HeaterCooler so they are re-added in the correct display order:
+  // Fan → Presets → Display.
   reorderLinkedServices() {
+    // Clear HeaterCooler's linked services list to reset display order
+    if (this.heaterCooler.linkedServices) {
+      this.heaterCooler.linkedServices = [];
+    }
+
     const ids = [
       { type: this.Service.Fanv2, subtype: 'fan' },
       { type: this.Service.Switch, subtype: 'sleep' },

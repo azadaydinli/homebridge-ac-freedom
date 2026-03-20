@@ -83,15 +83,6 @@
                 }
               }
             },
-            "hvacModes": {
-              "title": "Enabled HVAC Modes",
-              "type": "object",
-              "properties": {
-                "auto": { "title": "Auto", "type": "boolean", "default": true },
-                "cool": { "title": "Cool", "type": "boolean", "default": true },
-                "heat": { "title": "Heat", "type": "boolean", "default": true }
-              }
-            },
             "presets": {
               "title": "Enabled Preset Modes (shown as switches in climate card)",
               "type": "object",
