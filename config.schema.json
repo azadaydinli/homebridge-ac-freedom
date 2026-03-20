@@ -5,24 +5,24 @@
   "headerDisplay": "AUX Air Conditioner control via Broadlink (local) or AUX Cloud API.",
   "schema": {
     "type": "object",
+    "required": ["name"],
     "properties": {
       "name": {
         "title": "Platform Name",
         "type": "string",
-        "default": "AC Freedom",
-        "required": true
+        "default": "AC Freedom"
       },
       "devices": {
         "title": "Devices",
         "type": "array",
         "items": {
           "type": "object",
+          "required": ["name", "connection"],
           "properties": {
             "name": {
               "title": "Device Name",
               "type": "string",
-              "default": "AC Freedom",
-              "required": true
+              "default": "AC Freedom"
             },
             "connection": {
               "title": "Connection Mode",
@@ -31,23 +31,21 @@
               "oneOf": [
                 { "title": "Cloud (AUX Cloud API)", "enum": ["cloud"] },
                 { "title": "Local (Broadlink UDP)", "enum": ["local"] }
-              ],
-              "required": true
+              ]
             },
             "cloud": {
               "title": "Cloud Settings",
               "type": "object",
+              "required": ["email", "password"],
               "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
               "properties": {
                 "email": {
                   "title": "Email",
-                  "type": "string",
-                  "required": true
+                  "type": "string"
                 },
                 "password": {
                   "title": "Password",
-                  "type": "string",
-                  "required": true
+                  "type": "string"
                 },
                 "region": {
                   "title": "Region",
@@ -69,17 +67,16 @@
             "local": {
               "title": "Local Settings",
               "type": "object",
+              "required": ["ip", "mac"],
               "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
               "properties": {
                 "ip": {
                   "title": "IP Address",
-                  "type": "string",
-                  "required": true
+                  "type": "string"
                 },
                 "mac": {
                   "title": "MAC Address (AA:BB:CC:DD:EE:FF)",
-                  "type": "string",
-                  "required": true
+                  "type": "string"
                 }
               }
             },
