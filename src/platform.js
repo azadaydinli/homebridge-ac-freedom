@@ -60,6 +60,16 @@ class AcFreedomPlatform {
 
     if (!deviceApi) return;
 
+    // ── One-time migration: remove old cached accessory so linked
+    //    services are re-created in the correct display order.
+    const LAYOUT_VERSION = 2;
+    if (existingAccessory && existingAccessory.context.layoutVersion !== LAYOUT_VERSION) {
+      this.log.info('Migrating accessory for correct service order: %s', deviceConfig.name);
+      this.api.unregisterPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [existingAccessory]);
+      this.accessories.delete(uuid);
+      existingAccessory = null;
+    }
+
     if (existingAccessory) {
       this.log.info('Updating existing accessory: %s', deviceConfig.name);
       new AcFreedomAccessory(this, existingAccessory, deviceConfig, deviceApi);
@@ -70,6 +80,7 @@ class AcFreedomPlatform {
         deviceConfig.name,
         uuid,
       );
+      accessory.context.layoutVersion = LAYOUT_VERSION;
       new AcFreedomAccessory(this, accessory, deviceConfig, deviceApi);
       this.api.registerPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [accessory]);
       this.accessories.set(uuid, accessory);

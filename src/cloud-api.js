@@ -52,8 +52,20 @@ function httpRequest(url, options, body) {
     const parsedUrl = new URL(url);
     const mod = parsedUrl.protocol === 'https:' ? https : http;
 
+    // Compute Content-Length so the server receives a fixed-length
+    // body instead of chunked Transfer-Encoding.
+    const bodyBuf = body
+      ? (Buffer.isBuffer(body) ? body : Buffer.from(body, 'utf8'))
+      : null;
+
+    const headers = { ...(options.headers || {}) };
+    if (bodyBuf) {
+      headers['Content-Length'] = bodyBuf.length;
+    }
+
     const req = mod.request(url, {
       ...options,
+      headers,
       rejectUnauthorized: false,
     }, (res) => {
       let data = '';
@@ -73,14 +85,11 @@ function httpRequest(url, options, body) {
       reject(new Error('Request timeout'));
     });
 
-    if (body) {
-      if (Buffer.isBuffer(body)) {
-        req.write(body);
-      } else {
-        req.write(body, 'utf8');
-      }
+    if (bodyBuf) {
+      req.end(bodyBuf);
+    } else {
+      req.end();
     }
-    req.end();
   });
 }
 
