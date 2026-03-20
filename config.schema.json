@@ -1,0 +1,131 @@
+{
+  "pluginAlias": "AcFreedom",
+  "pluginType": "platform",
+  "singular": false,
+  "headerDisplay": "AUX Air Conditioner control via Broadlink (local) or AUX Cloud API.",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "default": "AC Freedom",
+        "required": true
+      },
+      "devices": {
+        "title": "Devices",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Device Name",
+              "type": "string",
+              "default": "AC Freedom",
+              "required": true
+            },
+            "connection": {
+              "title": "Connection Mode",
+              "type": "string",
+              "default": "cloud",
+              "oneOf": [
+                { "title": "Cloud (AUX Cloud API)", "enum": ["cloud"] },
+                { "title": "Local (Broadlink UDP)", "enum": ["local"] }
+              ],
+              "required": true
+            },
+            "cloud": {
+              "title": "Cloud Settings",
+              "type": "object",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
+              "properties": {
+                "email": {
+                  "title": "Email",
+                  "type": "string",
+                  "required": true
+                },
+                "password": {
+                  "title": "Password",
+                  "type": "string",
+                  "required": true
+                },
+                "region": {
+                  "title": "Region",
+                  "type": "string",
+                  "default": "eu",
+                  "oneOf": [
+                    { "title": "Europe", "enum": ["eu"] },
+                    { "title": "USA", "enum": ["usa"] },
+                    { "title": "China", "enum": ["cn"] },
+                    { "title": "Russia", "enum": ["rus"] }
+                  ]
+                },
+                "deviceId": {
+                  "title": "Device ID (endpointId, leave empty for auto-detect)",
+                  "type": "string"
+                }
+              }
+            },
+            "local": {
+              "title": "Local Settings",
+              "type": "object",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
+              "properties": {
+                "ip": {
+                  "title": "IP Address",
+                  "type": "string",
+                  "required": true
+                },
+                "mac": {
+                  "title": "MAC Address (AA:BB:CC:DD:EE:FF)",
+                  "type": "string",
+                  "required": true
+                }
+              }
+            },
+            "hvacModes": {
+              "title": "Enabled HVAC Modes",
+              "type": "object",
+              "properties": {
+                "auto": { "title": "Auto", "type": "boolean", "default": true },
+                "cool": { "title": "Cool", "type": "boolean", "default": true },
+                "heat": { "title": "Heat", "type": "boolean", "default": true }
+              }
+            },
+            "presets": {
+              "title": "Enabled Preset Modes (shown as switches in climate card)",
+              "type": "object",
+              "properties": {
+                "sleep": { "title": "Sleep Mode", "type": "boolean", "default": true },
+                "health": { "title": "Health / Ionizer", "type": "boolean", "default": true },
+                "eco": { "title": "Eco / Mildew Prevention", "type": "boolean", "default": true },
+                "clean": { "title": "Self Clean", "type": "boolean", "default": true }
+              }
+            },
+            "showDisplay": {
+              "title": "Show Display Switch",
+              "type": "boolean",
+              "default": true
+            },
+            "pollInterval": {
+              "title": "Poll Interval (seconds)",
+              "type": "integer",
+              "default": 30,
+              "minimum": 5,
+              "maximum": 300
+            },
+            "tempStep": {
+              "title": "Temperature Step",
+              "type": "number",
+              "default": 0.5,
+              "oneOf": [
+                { "title": "0.5 °C", "enum": [0.5] },
+                { "title": "1 °C", "enum": [1] }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
