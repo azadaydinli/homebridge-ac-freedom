@@ -1,9 +1,9 @@
 # Changelog
 
-## 2.0.7
+## 2.0.8
 
-- Fix: disabling all preset switches no longer removes fan from climate card
-- Stop using `removeService` for disabled switches (prevents HomeKit cache corruption)
+- Add Fan toggle to config UI — can be enabled/disabled like preset switches
+- Revert removeService behavior (switches properly removed when disabled)
 
 ## 2.0.3
 

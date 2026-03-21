@@ -182,6 +182,12 @@ class AcFreedomAccessory {
 
   // ── Fan Service (linked to HeaterCooler) ────────────────────────
   setupFanService() {
+    if (this.config.showFan === false) {
+      const existing = this.accessory.getServiceById(this.Service.Fanv2, 'fan');
+      if (existing) this.accessory.removeService(existing);
+      return;
+    }
+
     const C = this.Characteristic;
 
     this.fanService = this.accessory.getServiceById(this.Service.Fanv2, 'fan')
@@ -215,7 +221,11 @@ class AcFreedomAccessory {
     this.presetSwitches = {};
 
     for (const [key, cfg] of Object.entries(this.presetConfigs)) {
-      if (!presets[key]) continue;
+      if (!presets[key]) {
+        const existing = this.accessory.getServiceById(this.Service.Switch, key);
+        if (existing) this.accessory.removeService(existing);
+        continue;
+      }
 
       const switchService = this.accessory.getServiceById(this.Service.Switch, key)
         || this.accessory.addService(this.Service.Switch, cfg.label, key);
@@ -250,7 +260,11 @@ class AcFreedomAccessory {
 
   // ── Comfortable Wind Switch (linked to HeaterCooler) ────────────
   setupComfWindSwitch() {
-    if (this.config.showComfWind === false) return;
+    if (this.config.showComfWind === false) {
+      const existing = this.accessory.getServiceById(this.Service.Switch, 'comfwind');
+      if (existing) this.accessory.removeService(existing);
+      return;
+    }
 
     this.comfWindSwitch = this.accessory.getServiceById(this.Service.Switch, 'comfwind')
       || this.accessory.addService(this.Service.Switch, 'Comfortable Wind', 'comfwind');
@@ -269,7 +283,11 @@ class AcFreedomAccessory {
 
   // ── Display Switch (linked to HeaterCooler) ────────────────────
   setupDisplaySwitch() {
-    if (this.config.showDisplay === false) return;
+    if (this.config.showDisplay === false) {
+      const existing = this.accessory.getServiceById(this.Service.Switch, 'display');
+      if (existing) this.accessory.removeService(existing);
+      return;
+    }
 
     this.displaySwitch = this.accessory.getServiceById(this.Service.Switch, 'display')
       || this.accessory.addService(this.Service.Switch, 'Display', 'display');

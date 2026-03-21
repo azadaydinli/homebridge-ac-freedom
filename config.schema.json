@@ -75,6 +75,11 @@
                 "clean": { "title": "Self Clean", "type": "boolean", "default": true }
               }
             },
+            "showFan": {
+              "title": "Fan",
+              "type": "boolean",
+              "default": true
+            },
             "showComfWind": {
               "title": "Comfortable Wind",
               "type": "boolean",
@@ -158,6 +163,7 @@
                 { "key": "devices[].presets.clean" }
               ]
             },
+            { "key": "devices[].showFan" },
             { "key": "devices[].showComfWind" },
             { "key": "devices[].showDisplay" },
             {
