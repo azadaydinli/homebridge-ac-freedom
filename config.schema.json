@@ -137,19 +137,39 @@
           "items": [
             { "key": "devices[].name" },
             { "key": "devices[].connection" },
-            { "key": "devices[].cloud" },
-            { "key": "devices[].cloud.email" },
-            { "key": "devices[].cloud.password" },
-            { "key": "devices[].cloud.region" },
-            { "key": "devices[].cloud.deviceId" },
-            { "key": "devices[].local" },
-            { "key": "devices[].local.ip" },
-            { "key": "devices[].local.mac" },
-            { "key": "devices[].presets" },
-            { "key": "devices[].presets.sleep" },
-            { "key": "devices[].presets.health" },
-            { "key": "devices[].presets.eco" },
-            { "key": "devices[].presets.clean" },
+            {
+              "key": "devices[].cloud",
+              "type": "fieldset",
+              "title": "Cloud Settings",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
+              "items": [
+                { "key": "devices[].cloud.email" },
+                { "key": "devices[].cloud.password" },
+                { "key": "devices[].cloud.region" },
+                { "key": "devices[].cloud.deviceId" }
+              ]
+            },
+            {
+              "key": "devices[].local",
+              "type": "fieldset",
+              "title": "Local Settings",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
+              "items": [
+                { "key": "devices[].local.ip" },
+                { "key": "devices[].local.mac" }
+              ]
+            },
+            {
+              "key": "devices[].presets",
+              "type": "fieldset",
+              "title": "Preset Modes",
+              "items": [
+                { "key": "devices[].presets.sleep" },
+                { "key": "devices[].presets.health" },
+                { "key": "devices[].presets.eco" },
+                { "key": "devices[].presets.clean" }
+              ]
+            },
             { "key": "devices[].showComfWind" },
             { "key": "devices[].showDisplay" },
             { "key": "devices[].pollInterval" },
