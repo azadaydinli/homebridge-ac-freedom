@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.8
+
+- Fix duplicate field rendering in config UI — add `key` to layout fieldsets so nested objects are properly claimed
+
 ## 1.1.7
 
 - Fix config UI validation error and duplicate field rendering

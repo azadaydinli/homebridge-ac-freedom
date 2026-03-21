@@ -130,6 +130,7 @@
             { "key": "devices[].name" },
             { "key": "devices[].connection" },
             {
+              "key": "devices[].cloud",
               "type": "fieldset",
               "title": "Cloud Settings",
               "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
@@ -141,6 +142,7 @@
               ]
             },
             {
+              "key": "devices[].local",
               "type": "fieldset",
               "title": "Local Settings",
               "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
@@ -150,6 +152,7 @@
               ]
             },
             {
+              "key": "devices[].presets",
               "type": "fieldset",
               "title": "Preset Modes",
               "items": [
