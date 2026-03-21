@@ -1,11 +1,14 @@
 # Changelog
 
+## 1.2.2
+
+- Remove unused `changelog` field from config.schema.json (HB reads CHANGELOG.md directly from GitHub)
+
 ## 1.2.1
 
 - Fix floating popup bug — switch from `section` to `tabarray` layout for devices
 - Rename "Show Comfortable Wind Switch" → "Comfortable Wind"
 - Rename "Show Display Switch" → "Display"
-- Add changelog visibility in Homebridge UI
 
 ## 1.2.0
 

@@ -3,7 +3,6 @@
   "pluginType": "platform",
   "singular": false,
   "headerDisplay": "AUX Air Conditioner control via Broadlink (local) or AUX Cloud API.",
-  "changelog": "CHANGELOG.md",
   "schema": {
     "type": "object",
     "required": ["name"],
