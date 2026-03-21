@@ -6,12 +6,6 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Platform Name",
-        "type": "string",
-        "required": true,
-        "default": "AC Freedom"
-      },
       "devices": {
         "title": "Devices",
         "type": "array",

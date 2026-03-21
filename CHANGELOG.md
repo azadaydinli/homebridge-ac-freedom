@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1
+
+- Remove Platform Name field — config opens directly with device settings
+
 ## 2.0.0 — Breaking Change
 
 - **Config structure flattened** — nested `cloud`, `local`, `presets` objects replaced with flat properties (`cloudEmail`, `cloudPassword`, `cloudRegion`, `cloudDeviceId`, `localIp`, `localMac`, `sleep`, `health`, `eco`, `clean`, `comfwind`, `display`)
