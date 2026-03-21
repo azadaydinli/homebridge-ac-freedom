@@ -157,15 +157,15 @@
               "type": "fieldset",
               "title": "Preset Modes",
               "items": [
+                { "key": "devices[].showFan" },
                 { "key": "devices[].presets.sleep" },
                 { "key": "devices[].presets.health" },
                 { "key": "devices[].presets.eco" },
-                { "key": "devices[].presets.clean" }
+                { "key": "devices[].presets.clean" },
+                { "key": "devices[].showComfWind" },
+                { "key": "devices[].showDisplay" }
               ]
             },
-            { "key": "devices[].showFan" },
-            { "key": "devices[].showComfWind" },
-            { "key": "devices[].showDisplay" },
             {
               "key": "devices[].tempStep",
               "titleMap": {
