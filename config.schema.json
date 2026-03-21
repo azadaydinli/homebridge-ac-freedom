@@ -15,7 +15,6 @@
       "devices": {
         "title": "Devices",
         "type": "array",
-        "buttonText": "Add Device",
         "items": {
           "type": "object",
           "required": ["name", "connection"],
@@ -35,10 +34,7 @@
               ]
             },
             "cloud": {
-              "title": "Cloud Settings",
               "type": "object",
-              "required": ["email", "password"],
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
               "properties": {
                 "email": {
                   "title": "Email",
@@ -66,10 +62,7 @@
               }
             },
             "local": {
-              "title": "Local Settings",
               "type": "object",
-              "required": ["ip", "mac"],
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
               "properties": {
                 "ip": {
                   "title": "IP Address",
@@ -82,7 +75,6 @@
               }
             },
             "presets": {
-              "title": "Enabled Preset Modes (shown as switches in climate card)",
               "type": "object",
               "properties": {
                 "sleep": { "title": "Sleep Mode", "type": "boolean", "default": true },
@@ -138,7 +130,6 @@
             { "key": "devices[].name" },
             { "key": "devices[].connection" },
             {
-              "key": "devices[].cloud",
               "type": "fieldset",
               "title": "Cloud Settings",
               "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
@@ -150,7 +141,6 @@
               ]
             },
             {
-              "key": "devices[].local",
               "type": "fieldset",
               "title": "Local Settings",
               "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
@@ -160,7 +150,6 @@
               ]
             },
             {
-              "key": "devices[].presets",
               "type": "fieldset",
               "title": "Preset Modes",
               "items": [
