@@ -28,10 +28,7 @@
               "title": "Connection Mode",
               "type": "string",
               "default": "cloud",
-              "oneOf": [
-                { "title": "Cloud (AUX Cloud API)", "enum": ["cloud"] },
-                { "title": "Local (Broadlink UDP)", "enum": ["local"] }
-              ]
+              "enum": ["cloud", "local"]
             },
             "cloud": {
               "type": "object",
@@ -48,12 +45,7 @@
                   "title": "Region",
                   "type": "string",
                   "default": "eu",
-                  "oneOf": [
-                    { "title": "Europe", "enum": ["eu"] },
-                    { "title": "USA", "enum": ["usa"] },
-                    { "title": "China", "enum": ["cn"] },
-                    { "title": "Russia", "enum": ["rus"] }
-                  ]
+                  "enum": ["eu", "usa", "cn", "rus"]
                 },
                 "deviceId": {
                   "title": "Device ID (endpointId, leave empty for auto-detect)",
@@ -104,10 +96,7 @@
               "title": "Temperature Step",
               "type": "number",
               "default": 0.5,
-              "oneOf": [
-                { "title": "0.5 °C", "enum": [0.5] },
-                { "title": "1 °C", "enum": [1] }
-              ]
+              "enum": [0.5, 1]
             }
           }
         }
@@ -118,49 +107,76 @@
     { "key": "name" },
     {
       "key": "devices",
-      "type": "tabarray",
-      "title": "{{ value.name || 'New Device' }}",
+      "type": "array",
       "buttonText": "Add Device",
       "items": [
-        { "key": "devices[].name" },
-        { "key": "devices[].connection" },
         {
-          "key": "devices[].cloud",
-          "type": "fieldset",
-          "title": "Cloud Settings",
-          "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
+          "type": "section",
+          "expandable": true,
+          "expanded": false,
+          "title": "{{ value.name || 'New Device' }}",
           "items": [
-            { "key": "devices[].cloud.email" },
-            { "key": "devices[].cloud.password" },
-            { "key": "devices[].cloud.region" },
-            { "key": "devices[].cloud.deviceId" }
+            { "key": "devices[].name" },
+            {
+              "key": "devices[].connection",
+              "titleMap": {
+                "cloud": "Cloud (AUX Cloud API)",
+                "local": "Local (Broadlink UDP)"
+              }
+            },
+            {
+              "key": "devices[].cloud",
+              "type": "fieldset",
+              "title": "Cloud Settings",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
+              "items": [
+                { "key": "devices[].cloud.email" },
+                { "key": "devices[].cloud.password" },
+                {
+                  "key": "devices[].cloud.region",
+                  "titleMap": {
+                    "eu": "Europe",
+                    "usa": "USA",
+                    "cn": "China",
+                    "rus": "Russia"
+                  }
+                },
+                { "key": "devices[].cloud.deviceId" }
+              ]
+            },
+            {
+              "key": "devices[].local",
+              "type": "fieldset",
+              "title": "Local Settings",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
+              "items": [
+                { "key": "devices[].local.ip" },
+                { "key": "devices[].local.mac" }
+              ]
+            },
+            {
+              "key": "devices[].presets",
+              "type": "fieldset",
+              "title": "Preset Modes",
+              "items": [
+                { "key": "devices[].presets.sleep" },
+                { "key": "devices[].presets.health" },
+                { "key": "devices[].presets.eco" },
+                { "key": "devices[].presets.clean" }
+              ]
+            },
+            { "key": "devices[].showComfWind" },
+            { "key": "devices[].showDisplay" },
+            { "key": "devices[].pollInterval" },
+            {
+              "key": "devices[].tempStep",
+              "titleMap": {
+                "0.5": "0.5 °C",
+                "1": "1 °C"
+              }
+            }
           ]
-        },
-        {
-          "key": "devices[].local",
-          "type": "fieldset",
-          "title": "Local Settings",
-          "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
-          "items": [
-            { "key": "devices[].local.ip" },
-            { "key": "devices[].local.mac" }
-          ]
-        },
-        {
-          "key": "devices[].presets",
-          "type": "fieldset",
-          "title": "Preset Modes",
-          "items": [
-            { "key": "devices[].presets.sleep" },
-            { "key": "devices[].presets.health" },
-            { "key": "devices[].presets.eco" },
-            { "key": "devices[].presets.clean" }
-          ]
-        },
-        { "key": "devices[].showComfWind" },
-        { "key": "devices[].showDisplay" },
-        { "key": "devices[].pollInterval" },
-        { "key": "devices[].tempStep" }
+        }
       ]
     }
   ]

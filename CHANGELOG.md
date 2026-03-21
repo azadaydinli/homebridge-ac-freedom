@@ -1,8 +1,14 @@
 # Changelog
 
+## 1.2.3
+
+- Revert to section+expandable layout (per-device collapse/expand)
+- Fix floating popup bug — replace `oneOf` dropdowns with `enum` + `titleMap`
+- Rename switch labels: "Comfortable Wind", "Display"
+
 ## 1.2.2
 
-- Remove unused `changelog` field from config.schema.json (HB reads CHANGELOG.md directly from GitHub)
+- Remove unused `changelog` field from config.schema.json
 
 ## 1.2.1
 
