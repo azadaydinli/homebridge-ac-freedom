@@ -15,9 +15,14 @@
       "devices": {
         "title": "Devices",
         "type": "array",
+        "expandable": true,
+        "buttonText": "Add Device",
         "items": {
           "type": "object",
           "required": ["name", "connection"],
+          "displayFlex": true,
+          "flex-direction": "column",
+          "notitle": true,
           "properties": {
             "name": {
               "title": "Device Name",
