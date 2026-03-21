@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.3
+
+- Remove Poll Interval from config UI — hardcoded to 30 seconds
+
 ## 1.2.3
 
 - Revert to section+expandable layout (per-device collapse/expand)

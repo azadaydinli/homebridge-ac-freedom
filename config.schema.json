@@ -85,13 +85,6 @@
               "type": "boolean",
               "default": true
             },
-            "pollInterval": {
-              "title": "Poll Interval (seconds)",
-              "type": "integer",
-              "default": 30,
-              "minimum": 5,
-              "maximum": 300
-            },
             "tempStep": {
               "title": "Temperature Step",
               "type": "number",
@@ -167,7 +160,6 @@
             },
             { "key": "devices[].showComfWind" },
             { "key": "devices[].showDisplay" },
-            { "key": "devices[].pollInterval" },
             {
               "key": "devices[].tempStep",
               "titleMap": {
