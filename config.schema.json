@@ -3,6 +3,7 @@
   "pluginType": "platform",
   "singular": false,
   "headerDisplay": "AUX Air Conditioner control via Broadlink (local) or AUX Cloud API.",
+  "changelog": "CHANGELOG.md",
   "schema": {
     "type": "object",
     "required": ["name"],
@@ -84,12 +85,12 @@
               }
             },
             "showComfWind": {
-              "title": "Show Comfortable Wind Switch",
+              "title": "Comfortable Wind",
               "type": "boolean",
               "default": true
             },
             "showDisplay": {
-              "title": "Show Display Switch",
+              "title": "Display",
               "type": "boolean",
               "default": true
             },
@@ -118,56 +119,49 @@
     { "key": "name" },
     {
       "key": "devices",
-      "type": "array",
+      "type": "tabarray",
+      "title": "{{ value.name || 'New Device' }}",
       "buttonText": "Add Device",
       "items": [
+        { "key": "devices[].name" },
+        { "key": "devices[].connection" },
         {
-          "type": "section",
-          "expandable": true,
-          "expanded": false,
-          "title": "{{ value.name || 'New Device' }}",
+          "key": "devices[].cloud",
+          "type": "fieldset",
+          "title": "Cloud Settings",
+          "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
           "items": [
-            { "key": "devices[].name" },
-            { "key": "devices[].connection" },
-            {
-              "key": "devices[].cloud",
-              "type": "fieldset",
-              "title": "Cloud Settings",
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
-              "items": [
-                { "key": "devices[].cloud.email" },
-                { "key": "devices[].cloud.password" },
-                { "key": "devices[].cloud.region" },
-                { "key": "devices[].cloud.deviceId" }
-              ]
-            },
-            {
-              "key": "devices[].local",
-              "type": "fieldset",
-              "title": "Local Settings",
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
-              "items": [
-                { "key": "devices[].local.ip" },
-                { "key": "devices[].local.mac" }
-              ]
-            },
-            {
-              "key": "devices[].presets",
-              "type": "fieldset",
-              "title": "Preset Modes",
-              "items": [
-                { "key": "devices[].presets.sleep" },
-                { "key": "devices[].presets.health" },
-                { "key": "devices[].presets.eco" },
-                { "key": "devices[].presets.clean" }
-              ]
-            },
-            { "key": "devices[].showComfWind" },
-            { "key": "devices[].showDisplay" },
-            { "key": "devices[].pollInterval" },
-            { "key": "devices[].tempStep" }
+            { "key": "devices[].cloud.email" },
+            { "key": "devices[].cloud.password" },
+            { "key": "devices[].cloud.region" },
+            { "key": "devices[].cloud.deviceId" }
           ]
-        }
+        },
+        {
+          "key": "devices[].local",
+          "type": "fieldset",
+          "title": "Local Settings",
+          "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
+          "items": [
+            { "key": "devices[].local.ip" },
+            { "key": "devices[].local.mac" }
+          ]
+        },
+        {
+          "key": "devices[].presets",
+          "type": "fieldset",
+          "title": "Preset Modes",
+          "items": [
+            { "key": "devices[].presets.sleep" },
+            { "key": "devices[].presets.health" },
+            { "key": "devices[].presets.eco" },
+            { "key": "devices[].presets.clean" }
+          ]
+        },
+        { "key": "devices[].showComfWind" },
+        { "key": "devices[].showDisplay" },
+        { "key": "devices[].pollInterval" },
+        { "key": "devices[].tempStep" }
       ]
     }
   ]

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.1
+
+- Fix floating popup bug — switch from `section` to `tabarray` layout for devices
+- Rename "Show Comfortable Wind Switch" → "Comfortable Wind"
+- Rename "Show Display Switch" → "Display"
+- Add changelog visibility in Homebridge UI
+
+## 1.2.0
+
+- Revert to 1.1.8 config UI layout
+
+## 1.1.9
+
+- Attempt fix for floating popup — move expandable to array level (reverted)
+
 ## 1.1.8
 
 - Fix duplicate field rendering in config UI — add `key` to layout fieldsets so nested objects are properly claimed
