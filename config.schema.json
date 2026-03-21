@@ -69,14 +69,14 @@
             "presets": {
               "type": "object",
               "properties": {
-                "sleep": { "title": "Sleep", "type": "boolean", "default": true },
-                "health": { "title": "Health", "type": "boolean", "default": true },
-                "eco": { "title": "Eco", "type": "boolean", "default": true },
+                "sleep": { "title": "Sleep Mode", "type": "boolean", "default": true },
+                "health": { "title": "Health / Ionizer", "type": "boolean", "default": true },
+                "eco": { "title": "Eco / Mildew Prevention", "type": "boolean", "default": true },
                 "clean": { "title": "Self Clean", "type": "boolean", "default": true }
               }
             },
             "showComfWind": {
-              "title": "Comf Wind",
+              "title": "Comfortable Wind",
               "type": "boolean",
               "default": true
             },
@@ -148,17 +148,18 @@
               ]
             },
             {
-              "type": "flex",
-              "flex-flow": "row wrap",
+              "key": "devices[].presets",
+              "type": "fieldset",
+              "title": "Preset Modes",
               "items": [
-                { "key": "devices[].presets.sleep", "flex": "1 1 33%" },
-                { "key": "devices[].presets.health", "flex": "1 1 33%" },
-                { "key": "devices[].presets.eco", "flex": "1 1 33%" },
-                { "key": "devices[].presets.clean", "flex": "1 1 33%" },
-                { "key": "devices[].showComfWind", "flex": "1 1 33%" },
-                { "key": "devices[].showDisplay", "flex": "1 1 33%" }
+                { "key": "devices[].presets.sleep" },
+                { "key": "devices[].presets.health" },
+                { "key": "devices[].presets.eco" },
+                { "key": "devices[].presets.clean" }
               ]
             },
+            { "key": "devices[].showComfWind" },
+            { "key": "devices[].showDisplay" },
             {
               "key": "devices[].tempStep",
               "titleMap": {

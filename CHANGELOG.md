@@ -1,10 +1,5 @@
 # Changelog
 
-## 2.0.4
-
-- Simplify switch labels: Sleep, Health, Eco, Self Clean, Comf Wind, Display
-- Arrange switches in 3-per-row flex layout (wraps on small screens)
-
 ## 2.0.3
 
 - Remove Poll Interval from config UI — hardcoded to 30 seconds
