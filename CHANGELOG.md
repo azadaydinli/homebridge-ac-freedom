@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.7
+
+- Fix: disabling all preset switches no longer removes fan from climate card
+- Stop using `removeService` for disabled switches (prevents HomeKit cache corruption)
+
 ## 2.0.3
 
 - Remove Poll Interval from config UI — hardcoded to 30 seconds

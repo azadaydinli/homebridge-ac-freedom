@@ -215,11 +215,7 @@ class AcFreedomAccessory {
     this.presetSwitches = {};
 
     for (const [key, cfg] of Object.entries(this.presetConfigs)) {
-      if (!presets[key]) {
-        const existing = this.accessory.getServiceById(this.Service.Switch, key);
-        if (existing) this.accessory.removeService(existing);
-        continue;
-      }
+      if (!presets[key]) continue;
 
       const switchService = this.accessory.getServiceById(this.Service.Switch, key)
         || this.accessory.addService(this.Service.Switch, cfg.label, key);
@@ -254,11 +250,7 @@ class AcFreedomAccessory {
 
   // ── Comfortable Wind Switch (linked to HeaterCooler) ────────────
   setupComfWindSwitch() {
-    if (this.config.showComfWind === false) {
-      const existing = this.accessory.getServiceById(this.Service.Switch, 'comfwind');
-      if (existing) this.accessory.removeService(existing);
-      return;
-    }
+    if (this.config.showComfWind === false) return;
 
     this.comfWindSwitch = this.accessory.getServiceById(this.Service.Switch, 'comfwind')
       || this.accessory.addService(this.Service.Switch, 'Comfortable Wind', 'comfwind');
@@ -277,11 +269,7 @@ class AcFreedomAccessory {
 
   // ── Display Switch (linked to HeaterCooler) ────────────────────
   setupDisplaySwitch() {
-    if (this.config.showDisplay === false) {
-      const existing = this.accessory.getServiceById(this.Service.Switch, 'display');
-      if (existing) this.accessory.removeService(existing);
-      return;
-    }
+    if (this.config.showDisplay === false) return;
 
     this.displaySwitch = this.accessory.getServiceById(this.Service.Switch, 'display')
       || this.accessory.addService(this.Service.Switch, 'Display', 'display');
