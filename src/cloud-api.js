@@ -84,11 +84,8 @@ function httpRequest(url, options, body) {
 class AuxCloudAPI {
   constructor(region = 'eu') {
     this.url = API_URLS[region] || API_URLS.eu;
-    this.region = region;
     this.loginsession = null;
     this.userid = null;
-    this.email = null;
-    this.password = null;
   }
 
   _headers(extra = {}) {
@@ -115,9 +112,6 @@ class AuxCloudAPI {
 
   // ── Login ──────────────────────────────────────────────────────
   async login(email, password) {
-    this.email = email;
-    this.password = password;
-
     const ts = Date.now() / 1000;
     const shaPw = crypto.createHash('sha1')
       .update(`${password}${PASSWORD_SALT}`)

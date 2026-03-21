@@ -337,4 +337,4 @@ class BroadlinkAcApi {
   }
 }
 
-module.exports = { BroadlinkAcApi, AcState };
+module.exports = { BroadlinkAcApi };

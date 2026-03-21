@@ -1,7 +1,7 @@
 {
   "pluginAlias": "AcFreedom",
   "pluginType": "platform",
-  "singular": false,
+  "singular": true,
   "headerDisplay": "AUX Air Conditioner control via Broadlink (local) or AUX Cloud API.",
   "schema": {
     "type": "object",

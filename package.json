@@ -1,12 +1,10 @@
 {
   "name": "homebridge-ac-freedom",
-  "version": "2.0.9",
+  "version": "2.1.0",
   "displayName": "Homebridge AC Freedom",
   "description": "Homebridge plugin for AUX air conditioners via Broadlink (local UDP) and AUX Cloud API",
   "main": "index.js",
-  "scripts": {
-    "lint": "eslint src/"
-  },
+  "scripts": {},
   "keywords": [
     "homebridge-plugin",
     "homebridge",
@@ -29,7 +27,5 @@
     "homebridge": ">=1.6.0",
     "node": ">=18.0.0"
   },
-  "dependencies": {},
-  "devDependencies": {},
   "homepage": "https://github.com/azadaydinli/homebridge-ac-freedom"
 }

@@ -1,9 +1,10 @@
 # Changelog
 
-## 2.0.8
+## 2.1.0
 
-- Add Fan toggle to config UI — can be enabled/disabled like preset switches
-- Revert removeService behavior (switches properly removed when disabled)
+- Clean up codebase: remove dead code, unused exports, empty config fields
+- Set `singular: true` (single platform instance)
+- Add Fan toggle to config UI
 
 ## 2.0.3
 
