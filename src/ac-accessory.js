@@ -210,7 +210,12 @@ class AcFreedomAccessory {
 
   // ── Preset Switches (linked to HeaterCooler) ──────────────────
   setupPresetSwitches() {
-    const presets = this.config.presets || { sleep: true, health: true, eco: true, clean: true };
+    const presets = {
+      sleep: this.config.sleep !== false,
+      health: this.config.health !== false,
+      eco: this.config.eco !== false,
+      clean: this.config.clean !== false,
+    };
 
     this.presetSwitches = {};
 
@@ -254,7 +259,7 @@ class AcFreedomAccessory {
 
   // ── Comfortable Wind Switch (linked to HeaterCooler) ────────────
   setupComfWindSwitch() {
-    if (this.config.showComfWind === false) {
+    if (this.config.comfwind === false) {
       const existing = this.accessory.getServiceById(this.Service.Switch, 'comfwind');
       if (existing) this.accessory.removeService(existing);
       return;
@@ -277,7 +282,7 @@ class AcFreedomAccessory {
 
   // ── Display Switch (linked to HeaterCooler) ────────────────────
   setupDisplaySwitch() {
-    if (this.config.showDisplay === false) {
+    if (this.config.display === false) {
       const existing = this.accessory.getServiceById(this.Service.Switch, 'display');
       if (existing) this.accessory.removeService(existing);
       return;
@@ -351,8 +356,7 @@ class AcFreedomAccessory {
       if (err.message && err.message.includes('server busy')) return;
       // Re-login on token expiry
       if (err.message && err.message.includes('token')) {
-        const cloud = this.config.cloud;
-        await api.login(cloud.email, cloud.password);
+        await api.login(this.config.cloudEmail, this.config.cloudPassword);
       }
       throw err;
     }

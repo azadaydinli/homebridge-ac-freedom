@@ -5,11 +5,11 @@
   "headerDisplay": "AUX Air Conditioner control via Broadlink (local) or AUX Cloud API.",
   "schema": {
     "type": "object",
-    "required": ["name"],
     "properties": {
       "name": {
         "title": "Platform Name",
         "type": "string",
+        "required": true,
         "default": "AC Freedom"
       },
       "devices": {
@@ -17,70 +17,81 @@
         "type": "array",
         "items": {
           "type": "object",
-          "required": ["name", "connection"],
           "properties": {
             "name": {
               "title": "Device Name",
               "type": "string",
+              "required": true,
               "default": "AC Freedom"
             },
             "connection": {
               "title": "Connection Mode",
               "type": "string",
+              "required": true,
               "default": "cloud",
               "enum": ["cloud", "local"]
             },
-            "cloud": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "title": "Email",
-                  "type": "string"
-                },
-                "password": {
-                  "title": "Password",
-                  "type": "string"
-                },
-                "region": {
-                  "title": "Region",
-                  "type": "string",
-                  "default": "eu",
-                  "enum": ["eu", "usa", "cn", "rus"]
-                },
-                "deviceId": {
-                  "title": "Device ID (endpointId, leave empty for auto-detect)",
-                  "type": "string"
-                }
-              }
+            "cloudEmail": {
+              "title": "Cloud Email",
+              "type": "string",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" }
             },
-            "local": {
-              "type": "object",
-              "properties": {
-                "ip": {
-                  "title": "IP Address",
-                  "type": "string"
-                },
-                "mac": {
-                  "title": "MAC Address (AA:BB:CC:DD:EE:FF)",
-                  "type": "string"
-                }
-              }
+            "cloudPassword": {
+              "title": "Cloud Password",
+              "type": "string",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" }
             },
-            "presets": {
-              "type": "object",
-              "properties": {
-                "sleep": { "title": "Sleep Mode", "type": "boolean", "default": true },
-                "health": { "title": "Health / Ionizer", "type": "boolean", "default": true },
-                "eco": { "title": "Eco / Mildew Prevention", "type": "boolean", "default": true },
-                "clean": { "title": "Self Clean", "type": "boolean", "default": true }
-              }
+            "cloudRegion": {
+              "title": "Cloud Region",
+              "type": "string",
+              "default": "eu",
+              "enum": ["eu", "usa", "cn", "rus"],
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" }
             },
-            "showComfWind": {
+            "cloudDeviceId": {
+              "title": "Cloud Device ID (leave empty for auto-detect)",
+              "type": "string",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" }
+            },
+            "localIp": {
+              "title": "IP Address",
+              "type": "string",
+              "format": "ipv4",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" }
+            },
+            "localMac": {
+              "title": "MAC Address",
+              "type": "string",
+              "pattern": "^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$",
+              "placeholder": "AA:BB:CC:DD:EE:FF",
+              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" }
+            },
+            "sleep": {
+              "title": "Sleep Mode",
+              "type": "boolean",
+              "default": true
+            },
+            "health": {
+              "title": "Health / Ionizer",
+              "type": "boolean",
+              "default": true
+            },
+            "eco": {
+              "title": "Eco / Mildew Prevention",
+              "type": "boolean",
+              "default": true
+            },
+            "clean": {
+              "title": "Self Clean",
+              "type": "boolean",
+              "default": true
+            },
+            "comfwind": {
               "title": "Comfortable Wind",
               "type": "boolean",
               "default": true
             },
-            "showDisplay": {
+            "display": {
               "title": "Display",
               "type": "boolean",
               "default": true
@@ -96,88 +107,14 @@
               "title": "Temperature Step",
               "type": "number",
               "default": 0.5,
-              "enum": [0.5, 1]
+              "minimum": 0.5,
+              "maximum": 1
             }
           }
         }
       }
     }
   },
-  "layout": [
-    { "key": "name" },
-    {
-      "key": "devices",
-      "type": "array",
-      "buttonText": "Add Device",
-      "items": [
-        {
-          "type": "section",
-          "expandable": true,
-          "expanded": false,
-          "title": "{{ value.name || 'New Device' }}",
-          "items": [
-            { "key": "devices[].name" },
-            {
-              "key": "devices[].connection",
-              "titleMap": {
-                "cloud": "Cloud (AUX Cloud API)",
-                "local": "Local (Broadlink UDP)"
-              }
-            },
-            {
-              "key": "devices[].cloud",
-              "type": "fieldset",
-              "title": "Cloud Settings",
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
-              "items": [
-                { "key": "devices[].cloud.email" },
-                { "key": "devices[].cloud.password" },
-                {
-                  "key": "devices[].cloud.region",
-                  "titleMap": {
-                    "eu": "Europe",
-                    "usa": "USA",
-                    "cn": "China",
-                    "rus": "Russia"
-                  }
-                },
-                { "key": "devices[].cloud.deviceId" }
-              ]
-            },
-            {
-              "key": "devices[].local",
-              "type": "fieldset",
-              "title": "Local Settings",
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
-              "items": [
-                { "key": "devices[].local.ip" },
-                { "key": "devices[].local.mac" }
-              ]
-            },
-            {
-              "key": "devices[].presets",
-              "type": "fieldset",
-              "title": "Preset Modes",
-              "items": [
-                { "key": "devices[].presets.sleep" },
-                { "key": "devices[].presets.health" },
-                { "key": "devices[].presets.eco" },
-                { "key": "devices[].presets.clean" }
-              ]
-            },
-            { "key": "devices[].showComfWind" },
-            { "key": "devices[].showDisplay" },
-            { "key": "devices[].pollInterval" },
-            {
-              "key": "devices[].tempStep",
-              "titleMap": {
-                "0.5": "0.5 °C",
-                "1": "1 °C"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  "form": null,
+  "display": null
 }

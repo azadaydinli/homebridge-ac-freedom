@@ -1,10 +1,15 @@
 # Changelog
 
+## 2.0.0 — Breaking Change
+
+- **Config structure flattened** — nested `cloud`, `local`, `presets` objects replaced with flat properties (`cloudEmail`, `cloudPassword`, `cloudRegion`, `cloudDeviceId`, `localIp`, `localMac`, `sleep`, `health`, `eco`, `clean`, `comfwind`, `display`)
+- **Config UI completely rewritten** — no custom layout, no `oneOf` dropdowns, fixes all floating popup bugs
+- **Conditional fields** — cloud/local fields show/hide based on connection mode
+- Existing configs need to be re-entered via Homebridge UI after upgrading
+
 ## 1.2.3
 
-- Revert to section+expandable layout (per-device collapse/expand)
-- Fix floating popup bug — replace `oneOf` dropdowns with `enum` + `titleMap`
-- Rename switch labels: "Comfortable Wind", "Display"
+- Attempt fix for floating popup — replace `oneOf` with `enum` + `titleMap`
 
 ## 1.2.2
 

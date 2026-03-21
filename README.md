@@ -87,11 +87,9 @@ Add the following to your Homebridge `config.json`:
         {
           "name": "Living Room AC",
           "connection": "cloud",
-          "cloud": {
-            "email": "your-email@example.com",
-            "password": "your-password",
-            "region": "eu"
-          }
+          "cloudEmail": "your-email@example.com",
+          "cloudPassword": "your-password",
+          "cloudRegion": "eu"
         }
       ]
     }
@@ -111,10 +109,8 @@ Add the following to your Homebridge `config.json`:
         {
           "name": "Bedroom AC",
           "connection": "local",
-          "local": {
-            "ip": "192.168.1.100",
-            "mac": "AA:BB:CC:DD:EE:FF"
-          }
+          "localIp": "192.168.1.100",
+          "localMac": "AA:BB:CC:DD:EE:FF"
         }
       ]
     }
@@ -133,32 +129,32 @@ Add the following to your Homebridge `config.json`:
 | `pollInterval` | integer | `30` | State polling interval in seconds (5--300) |
 | `tempStep` | number | `0.5` | Temperature adjustment step: `0.5` or `1` |
 
-#### Cloud Options
+#### Cloud Options (when `connection` is `"cloud"`)
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `email` | string | Yes | AC Freedom app email |
-| `password` | string | Yes | AC Freedom app password |
-| `region` | string | No | Server region: `"eu"`, `"usa"`, `"cn"`, `"rus"` (default: `"eu"`) |
-| `deviceId` | string | No | Specific device endpoint ID (leave empty for auto-detect) |
+| `cloudEmail` | string | Yes | AC Freedom app email |
+| `cloudPassword` | string | Yes | AC Freedom app password |
+| `cloudRegion` | string | No | Server region: `"eu"`, `"usa"`, `"cn"`, `"rus"` (default: `"eu"`) |
+| `cloudDeviceId` | string | No | Specific device endpoint ID (leave empty for auto-detect) |
 
-#### Local Options
+#### Local Options (when `connection` is `"local"`)
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `ip` | string | Yes | AC unit's IP address on your local network |
-| `mac` | string | Yes | AC unit's MAC address (`AA:BB:CC:DD:EE:FF` format) |
+| `localIp` | string | Yes | AC unit's IP address on your local network |
+| `localMac` | string | Yes | AC unit's MAC address (`AA:BB:CC:DD:EE:FF` format) |
 
 #### Feature Switches
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `presets.sleep` | boolean | `true` | Show Sleep Mode switch |
-| `presets.health` | boolean | `true` | Show Health / Ionizer switch |
-| `presets.eco` | boolean | `true` | Show Eco / Mildew Prevention switch |
-| `presets.clean` | boolean | `true` | Show Self Clean switch |
-| `showComfWind` | boolean | `true` | Show Comfortable Wind switch |
-| `showDisplay` | boolean | `true` | Show Display (LED) switch |
+| `sleep` | boolean | `true` | Show Sleep Mode switch |
+| `health` | boolean | `true` | Show Health / Ionizer switch |
+| `eco` | boolean | `true` | Show Eco / Mildew Prevention switch |
+| `clean` | boolean | `true` | Show Self Clean switch |
+| `comfwind` | boolean | `true` | Show Comfortable Wind switch |
+| `display` | boolean | `true` | Show Display (LED) switch |
 
 ## HomeKit Climate Card
 

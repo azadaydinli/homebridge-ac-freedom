@@ -45,8 +45,8 @@ class AcFreedomPlatform {
   async setupDevice(deviceConfig) {
     const uuid = this.api.hap.uuid.generate(
       deviceConfig.connection === 'cloud'
-        ? `ac-freedom-cloud-${deviceConfig.cloud?.email}-${deviceConfig.cloud?.deviceId || 'auto'}`
-        : `ac-freedom-local-${deviceConfig.local?.ip}-${deviceConfig.local?.mac}`,
+        ? `ac-freedom-cloud-${deviceConfig.cloudEmail}-${deviceConfig.cloudDeviceId || 'auto'}`
+        : `ac-freedom-local-${deviceConfig.localIp}-${deviceConfig.localMac}`,
     );
 
     const existingAccessory = this.accessories.get(uuid);
@@ -74,16 +74,15 @@ class AcFreedomPlatform {
   }
 
   async setupCloudDevice(config) {
-    const cloud = config.cloud;
-    if (!cloud || !cloud.email || !cloud.password) {
+    if (!config.cloudEmail || !config.cloudPassword) {
       this.log.error('Cloud config missing email/password');
       return null;
     }
 
-    const api = new AuxCloudAPI(cloud.region || 'eu');
+    const api = new AuxCloudAPI(config.cloudRegion || 'eu');
     try {
-      await api.login(cloud.email, cloud.password);
-      this.log.info('Cloud login successful: %s', cloud.email);
+      await api.login(config.cloudEmail, config.cloudPassword);
+      this.log.info('Cloud login successful: %s', config.cloudEmail);
 
       const families = await api.getFamilies();
       let devices = [];
@@ -92,8 +91,8 @@ class AcFreedomPlatform {
         devices.push(...devs);
       }
 
-      if (cloud.deviceId) {
-        devices = devices.filter(d => d.endpointId === cloud.deviceId);
+      if (config.cloudDeviceId) {
+        devices = devices.filter(d => d.endpointId === config.cloudDeviceId);
       }
 
       if (devices.length === 0) {
@@ -111,20 +110,19 @@ class AcFreedomPlatform {
   }
 
   async setupLocalDevice(config) {
-    const local = config.local;
-    if (!local || !local.ip || !local.mac) {
+    if (!config.localIp || !config.localMac) {
       this.log.error('Local config missing ip/mac');
       return null;
     }
 
-    const api = new BroadlinkAcApi(local.ip, local.mac);
+    const api = new BroadlinkAcApi(config.localIp, config.localMac);
     try {
       const connected = await api.connect();
       if (!connected) {
         this.log.error('Failed to connect to local device at %s', local.ip);
         return null;
       }
-      this.log.info('Local device connected: %s', local.ip);
+      this.log.info('Local device connected: %s', config.localIp);
       return { type: 'local', api };
     } catch (err) {
       this.log.error('Local connection failed: %s', err.message);
