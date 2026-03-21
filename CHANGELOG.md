@@ -1,9 +1,5 @@
 # Changelog
 
-## 1.1.9
-
-- Fix floating popup bug in config UI — move `expandable` from section to array level, remove section wrapper
-
 ## 1.1.8
 
 - Fix duplicate field rendering in config UI — add `key` to layout fieldsets so nested objects are properly claimed
