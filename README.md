@@ -4,6 +4,7 @@
 
 # homebridge-ac-freedom
 
+[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat&logoColor=%23FFFFFF&logo=homebridge)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm](https://img.shields.io/npm/v/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
 [![npm](https://img.shields.io/npm/dt/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
 [![GitHub](https://img.shields.io/github/license/azadaydinli/homebridge-ac-freedom)](https://github.com/azadaydinli/homebridge-ac-freedom/blob/main/LICENSE)
