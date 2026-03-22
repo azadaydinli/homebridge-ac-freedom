@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1
+
+- Mark plugin as compatible with Homebridge v2
+
 ## 2.1.0
 
 - Clean up codebase: remove dead code, unused exports, empty config fields
