@@ -182,73 +182,49 @@ class AcFreedomAccessory {
       });
   }
 
-  // ── Fan Speed as Television InputSource (linked to HeaterCooler) ──
-  // Allows custom names: OTOMATİK(0) DÜŞÜK(1) ORTA(2) YÜKSEK(3)
+  // ── Fan Service (linked to HeaterCooler) ────────────────────────
   setupFanService() {
-    // Remove legacy services from previous versions
+    // Remove legacy services from previous beta versions
     for (const [Svc, id] of [
-      [this.Service.Fanv2, 'fan'],
       [this.Service.SecuritySystem, 'fan'],
+      [this.Service.Television, 'fan-tv'],
     ]) {
       const old = this.accessory.getServiceById(Svc, id);
       if (old) this.accessory.removeService(old);
     }
+    for (const sid of ['fan-0', 'fan-1', 'fan-2', 'fan-3']) {
+      const src = this.accessory.getServiceById(this.Service.InputSource, sid);
+      if (src) this.accessory.removeService(src);
+    }
 
     if (this.config.showFan === false) {
-      const tv = this.accessory.getServiceById(this.Service.Television, 'fan-tv');
-      if (tv) this.accessory.removeService(tv);
-      for (const sid of ['fan-0', 'fan-1', 'fan-2', 'fan-3']) {
-        const src = this.accessory.getServiceById(this.Service.InputSource, sid);
-        if (src) this.accessory.removeService(src);
-      }
+      const existing = this.accessory.getServiceById(this.Service.Fanv2, 'fan');
+      if (existing) this.accessory.removeService(existing);
       return;
     }
 
     const C = this.Characteristic;
 
-    this.fanService = this.accessory.getServiceById(this.Service.Television, 'fan-tv')
-      || this.accessory.addService(this.Service.Television, 'Fan Speed', 'fan-tv');
+    this.fanService = this.accessory.getServiceById(this.Service.Fanv2, 'fan')
+      || this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
 
-    this.fanService
-      .setCharacteristic(C.ConfiguredName, 'Fan Speed')
-      .setCharacteristic(C.SleepDiscoveryMode, C.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
-
+    // Fan Active follows AC power
     this.fanService.getCharacteristic(C.Active)
-      .onGet(() => this.state.power ? 1 : 0)
+      .onGet(() => this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE)
       .onSet(async (value) => {
-        this.state.power = value === 1;
+        this.state.power = value === C.Active.ACTIVE;
         await this.sendPower(this.state.power);
         if (!this.state.power) this.resetFanToAuto();
       });
 
-    this.fanService.getCharacteristic(C.ActiveIdentifier)
-      .onGet(() => this.fanSpeedToInputId(this.state.fanSpeed))
+    // Rotation speed: 0=auto, 20=mute, 40=low, 60=med, 80=high, 100=turbo
+    this.fanService.getCharacteristic(C.RotationSpeed)
+      .setProps({ minValue: 0, maxValue: 100, minStep: 1 })
+      .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
       .onSet(async (value) => {
-        this.state.fanSpeed = this.inputIdToFanSpeed(value);
+        this.state.fanSpeed = this.percentToFanSpeed(value);
         await this.sendFanSpeed(this.state.fanSpeed);
       });
-
-    // 4 input sources with custom names
-    const inputs = [
-      { sid: 'fan-0', name: 'OTOMATİK', id: 0 },
-      { sid: 'fan-1', name: 'DÜŞÜK',    id: 1 },
-      { sid: 'fan-2', name: 'ORTA',     id: 2 },
-      { sid: 'fan-3', name: 'YÜKSEK',   id: 3 },
-    ];
-
-    this.fanInputs = [];
-    for (const inp of inputs) {
-      const src = this.accessory.getServiceById(this.Service.InputSource, inp.sid)
-        || this.accessory.addService(this.Service.InputSource, inp.name, inp.sid);
-      src
-        .setCharacteristic(C.Identifier, inp.id)
-        .setCharacteristic(C.ConfiguredName, inp.name)
-        .setCharacteristic(C.InputSourceType, C.InputSourceType.HDMI)
-        .setCharacteristic(C.IsConfigured, C.IsConfigured.CONFIGURED)
-        .setCharacteristic(C.CurrentVisibilityState, C.CurrentVisibilityState.SHOWN);
-      this.fanService.addLinkedService(src);
-      this.fanInputs.push(src);
-    }
 
     this.heaterCooler.addLinkedService(this.fanService);
   }
@@ -347,29 +323,25 @@ class AcFreedomAccessory {
   resetFanToAuto(sendCommand = false) {
     this.state.fanSpeed = FAN_SPEED.AUTO;
     if (this.fanService) {
-      this.fanService.updateCharacteristic(this.Characteristic.ActiveIdentifier, 0);
+      this.fanService.updateCharacteristic(this.Characteristic.RotationSpeed, 0);
     }
     if (sendCommand) this.sendFanSpeed(FAN_SPEED.AUTO).catch(() => {});
   }
 
-  // ── Fan speed ↔ InputSource identifier mapping ─────────────────
-  // 0=OTOMATİK  1=DÜŞÜK  2=ORTA  3=YÜKSEK
-  fanSpeedToInputId(speed) {
-    switch (speed) {
-      case FAN_SPEED.LOW:    return 1;
-      case FAN_SPEED.MEDIUM: return 2;
-      case FAN_SPEED.HIGH:   return 3;
-      default:               return 0;
-    }
+  // ── Fan speed ↔ percent mapping ────────────────────────────────
+  // 0=auto  20=mute  40=low  60=medium  80=high  100=turbo
+  fanSpeedToPercent(speed) {
+    const map = { 0: 0, 5: 20, 1: 40, 2: 60, 3: 80, 4: 100 };
+    return map[speed] ?? 0;
   }
 
-  inputIdToFanSpeed(id) {
-    switch (id) {
-      case 1: return FAN_SPEED.LOW;
-      case 2: return FAN_SPEED.MEDIUM;
-      case 3: return FAN_SPEED.HIGH;
-      default: return FAN_SPEED.AUTO;
-    }
+  percentToFanSpeed(pct) {
+    if (pct <= 0)  return FAN_SPEED.AUTO;
+    if (pct <= 20) return FAN_SPEED.MUTE;
+    if (pct <= 40) return FAN_SPEED.LOW;
+    if (pct <= 60) return FAN_SPEED.MEDIUM;
+    if (pct <= 80) return FAN_SPEED.HIGH;
+    return FAN_SPEED.TURBO;
   }
 
   // ── Poll state ─────────────────────────────────────────────────
@@ -472,9 +444,10 @@ class AcFreedomAccessory {
       (this.state.swingV || this.state.swingH) ? C.SwingMode.SWING_ENABLED : C.SwingMode.SWING_DISABLED);
 
     if (this.fanService) {
-      const inputId = this.state.power ? this.fanSpeedToInputId(this.state.fanSpeed) : 0;
-      this.fanService.updateCharacteristic(C.Active, this.state.power ? 1 : 0);
-      this.fanService.updateCharacteristic(C.ActiveIdentifier, inputId);
+      this.fanService.updateCharacteristic(C.Active,
+        this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE);
+      this.fanService.updateCharacteristic(C.RotationSpeed,
+        this.state.power ? this.fanSpeedToPercent(this.state.fanSpeed) : 0);
     }
 
     for (const [key, svc] of Object.entries(this.presetSwitches || {})) {
