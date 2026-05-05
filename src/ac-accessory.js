@@ -339,14 +339,25 @@ class AcFreedomAccessory {
   }
 
   // ── Fan speed ↔ percent mapping ────────────────────────────────
-  // 0=Auto  25=Low  50=Medium  75=High  100=Turbo
+  // Cloud: ac_mark 0=Auto 1=Low 2=Medium 3=High 4=Turbo (direct)
+  // Local: ac_mark 1=fast(High) 2=Medium 3=slow(Low) 4=Turbo (inverted)
   fanSpeedToPercent(speed) {
+    if (this.deviceApi.type === 'local') {
+      const map = { 0: 0, 1: 75, 2: 50, 3: 25, 4: 100 };
+      return map[speed] ?? 0;
+    }
     const map = { 0: 0, 1: 25, 2: 50, 3: 75, 4: 100 };
     return map[speed] ?? 0;
   }
 
   percentToFanSpeed(pct) {
     if (pct <= 0)  return FAN_SPEED.AUTO;
+    if (this.deviceApi.type === 'local') {
+      if (pct <= 37) return FAN_SPEED.HIGH;   // local: slow=ac_mark3=visually Low
+      if (pct <= 62) return FAN_SPEED.MEDIUM;
+      if (pct <= 87) return FAN_SPEED.LOW;    // local: fast=ac_mark1=visually High
+      return FAN_SPEED.TURBO;
+    }
     if (pct <= 37) return FAN_SPEED.LOW;
     if (pct <= 62) return FAN_SPEED.MEDIUM;
     if (pct <= 87) return FAN_SPEED.HIGH;
