@@ -218,9 +218,9 @@ class AcFreedomAccessory {
         if (!this.state.power) { this.resetFanToAuto(); this.resetSleep(); }
       });
 
-    // Rotation speed: 0=auto, 20=mute, 40=low, 60=med, 80=high, 100=turbo
+    // Rotation speed: 0=Auto  25=Low  50=Medium  75=High  100=Turbo
     this.fanService.getCharacteristic(C.RotationSpeed)
-      .setProps({ minValue: 0, maxValue: 100, minStep: 1 })
+      .setProps({ minValue: 0, maxValue: 100, minStep: 25 })
       .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
       .onSet(async (value) => {
         this.state.fanSpeed = this.percentToFanSpeed(value);
