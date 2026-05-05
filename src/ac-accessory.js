@@ -180,37 +180,36 @@ class AcFreedomAccessory {
       });
   }
 
-  // ── Fan Service (linked to HeaterCooler) ────────────────────────
+  // ── Fan Speed as SecuritySystem (linked to HeaterCooler) ─────────
+  // Off(3)=Auto  Night(2)=Low  Away(1)=Medium  Home(0)=High
   setupFanService() {
+    // Remove legacy Fanv2 service if it exists (migration)
+    const oldFan = this.accessory.getServiceById(this.Service.Fanv2, 'fan');
+    if (oldFan) this.accessory.removeService(oldFan);
+
     if (this.config.showFan === false) {
-      const existing = this.accessory.getServiceById(this.Service.Fanv2, 'fan');
+      const existing = this.accessory.getServiceById(this.Service.SecuritySystem, 'fan');
       if (existing) this.accessory.removeService(existing);
       return;
     }
 
     const C = this.Characteristic;
 
-    this.fanService = this.accessory.getServiceById(this.Service.Fanv2, 'fan')
-      || this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
+    this.fanService = this.accessory.getServiceById(this.Service.SecuritySystem, 'fan')
+      || this.accessory.addService(this.Service.SecuritySystem, 'Fan Speed', 'fan');
 
-    // Fan Active follows AC power
-    this.fanService.getCharacteristic(C.Active)
-      .onGet(() => this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE)
+    // Target state controls fan speed
+    this.fanService.getCharacteristic(C.SecuritySystemTargetState)
+      .setProps({ validValues: [0, 1, 2, 3] })
+      .onGet(() => this.fanSpeedToSecState(this.state.fanSpeed))
       .onSet(async (value) => {
-        this.state.power = value === C.Active.ACTIVE;
-        await this.sendPower(this.state.power);
-      });
-
-    // Rotation speed: 0=auto, 20=mute, 40=low, 60=med, 80=high, 100=turbo
-    this.fanService.getCharacteristic(C.RotationSpeed)
-      .setProps({ minValue: 0, maxValue: 100, minStep: 1 })
-      .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
-      .onSet(async (value) => {
-        this.state.fanSpeed = this.percentToFanSpeed(value);
+        this.state.fanSpeed = this.secStateToFanSpeed(value);
         await this.sendFanSpeed(this.state.fanSpeed);
       });
 
-    // Link fan to HeaterCooler so it appears inside the climate card
+    this.fanService.getCharacteristic(C.SecuritySystemCurrentState)
+      .onGet(() => this.fanSpeedToSecState(this.state.fanSpeed));
+
     this.heaterCooler.addLinkedService(this.fanService);
   }
 
@@ -304,19 +303,24 @@ class AcFreedomAccessory {
     this.heaterCooler.addLinkedService(this.displaySwitch);
   }
 
-  // ── Fan speed mapping ──────────────────────────────────────────
-  fanSpeedToPercent(speed) {
-    const map = { 0: 0, 5: 20, 1: 40, 2: 60, 3: 80, 4: 100 };
-    return map[speed] ?? 0;
+  // ── Fan speed ↔ SecuritySystem state mapping ───────────────────
+  // Home(0)=High  Away(1)=Medium  Night(2)=Low  Off/Disarmed(3)=Auto
+  fanSpeedToSecState(speed) {
+    switch (speed) {
+      case FAN_SPEED.HIGH:   return 0; // Home
+      case FAN_SPEED.MEDIUM: return 1; // Away
+      case FAN_SPEED.LOW:    return 2; // Night
+      default:               return 3; // Off = Auto
+    }
   }
 
-  percentToFanSpeed(pct) {
-    if (pct <= 0) return FAN_SPEED.AUTO;
-    if (pct <= 20) return FAN_SPEED.MUTE;
-    if (pct <= 40) return FAN_SPEED.LOW;
-    if (pct <= 60) return FAN_SPEED.MEDIUM;
-    if (pct <= 80) return FAN_SPEED.HIGH;
-    return FAN_SPEED.TURBO;
+  secStateToFanSpeed(state) {
+    switch (state) {
+      case 0: return FAN_SPEED.HIGH;
+      case 1: return FAN_SPEED.MEDIUM;
+      case 2: return FAN_SPEED.LOW;
+      default: return FAN_SPEED.AUTO;
+    }
   }
 
   // ── Poll state ─────────────────────────────────────────────────
@@ -419,10 +423,9 @@ class AcFreedomAccessory {
       (this.state.swingV || this.state.swingH) ? C.SwingMode.SWING_ENABLED : C.SwingMode.SWING_DISABLED);
 
     if (this.fanService) {
-      this.fanService.updateCharacteristic(C.Active,
-        this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE);
-      this.fanService.updateCharacteristic(C.RotationSpeed,
-        this.fanSpeedToPercent(this.state.fanSpeed));
+      const secState = this.fanSpeedToSecState(this.state.fanSpeed);
+      this.fanService.updateCharacteristic(C.SecuritySystemCurrentState, secState);
+      this.fanService.updateCharacteristic(C.SecuritySystemTargetState, secState);
     }
 
     for (const [key, svc] of Object.entries(this.presetSwitches || {})) {
