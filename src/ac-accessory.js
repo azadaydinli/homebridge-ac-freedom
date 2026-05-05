@@ -103,6 +103,7 @@ class AcFreedomAccessory {
       .onSet(async (value) => {
         this.state.power = value === C.Active.ACTIVE;
         await this.sendPower(this.state.power);
+        if (!this.state.power) this.resetFanToAuto();
       });
 
     // Current state
@@ -141,6 +142,7 @@ class AcFreedomAccessory {
         }
         this.state.mode = mode;
         await this.sendMode(mode);
+        this.resetFanToAuto(true);
       });
 
     // Current temperature
@@ -303,6 +305,16 @@ class AcFreedomAccessory {
     this.heaterCooler.addLinkedService(this.displaySwitch);
   }
 
+  // ── Fan speed helpers ──────────────────────────────────────────
+  resetFanToAuto(sendCommand = false) {
+    this.state.fanSpeed = FAN_SPEED.AUTO;
+    if (this.fanService) {
+      this.fanService.updateCharacteristic(this.Characteristic.SecuritySystemCurrentState, 3);
+      this.fanService.updateCharacteristic(this.Characteristic.SecuritySystemTargetState, 3);
+    }
+    if (sendCommand) this.sendFanSpeed(FAN_SPEED.AUTO).catch(() => {});
+  }
+
   // ── Fan speed ↔ SecuritySystem state mapping ───────────────────
   // Home(0)=High  Away(1)=Medium  Night(2)=Low  Off/Disarmed(3)=Auto
   fanSpeedToSecState(speed) {
@@ -423,7 +435,9 @@ class AcFreedomAccessory {
       (this.state.swingV || this.state.swingH) ? C.SwingMode.SWING_ENABLED : C.SwingMode.SWING_DISABLED);
 
     if (this.fanService) {
-      const secState = this.fanSpeedToSecState(this.state.fanSpeed);
+      const secState = this.state.power
+        ? this.fanSpeedToSecState(this.state.fanSpeed)
+        : 3; // Auto when AC is off
       this.fanService.updateCharacteristic(C.SecuritySystemCurrentState, secState);
       this.fanService.updateCharacteristic(C.SecuritySystemTargetState, secState);
     }
