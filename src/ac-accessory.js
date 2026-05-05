@@ -103,7 +103,7 @@ class AcFreedomAccessory {
       .onSet(async (value) => {
         this.state.power = value === C.Active.ACTIVE;
         await this.sendPower(this.state.power);
-        if (!this.state.power) this.resetFanToAuto();
+        if (!this.state.power) { this.resetFanToAuto(); this.resetSleep(); }
       });
 
     // Current state
@@ -143,6 +143,7 @@ class AcFreedomAccessory {
         this.state.mode = mode;
         await this.sendMode(mode);
         this.resetFanToAuto(true);
+        this.resetSleep();
       });
 
     // Current temperature
@@ -214,7 +215,7 @@ class AcFreedomAccessory {
       .onSet(async (value) => {
         this.state.power = value === C.Active.ACTIVE;
         await this.sendPower(this.state.power);
-        if (!this.state.power) this.resetFanToAuto();
+        if (!this.state.power) { this.resetFanToAuto(); this.resetSleep(); }
       });
 
     // Rotation speed: 0=auto, 20=mute, 40=low, 60=med, 80=high, 100=turbo
@@ -328,19 +329,27 @@ class AcFreedomAccessory {
     if (sendCommand) this.sendFanSpeed(FAN_SPEED.AUTO).catch(() => {});
   }
 
+  resetSleep() {
+    if (!this.state.sleep) return;
+    this.state.sleep = false;
+    if (this.presetSwitches && this.presetSwitches.sleep) {
+      this.presetSwitches.sleep.updateCharacteristic(this.Characteristic.On, false);
+    }
+    this.sendPreset('sleep', false).catch(() => {});
+  }
+
   // ── Fan speed ↔ percent mapping ────────────────────────────────
-  // 0=auto  20=mute  40=low  60=medium  80=high  100=turbo
+  // 0=Auto  25=Low  50=Medium  75=High  100=Turbo
   fanSpeedToPercent(speed) {
-    const map = { 0: 0, 5: 20, 1: 40, 2: 60, 3: 80, 4: 100 };
+    const map = { 0: 0, 1: 25, 2: 50, 3: 75, 4: 100 };
     return map[speed] ?? 0;
   }
 
   percentToFanSpeed(pct) {
     if (pct <= 0)  return FAN_SPEED.AUTO;
-    if (pct <= 20) return FAN_SPEED.MUTE;
-    if (pct <= 40) return FAN_SPEED.LOW;
-    if (pct <= 60) return FAN_SPEED.MEDIUM;
-    if (pct <= 80) return FAN_SPEED.HIGH;
+    if (pct <= 37) return FAN_SPEED.LOW;
+    if (pct <= 62) return FAN_SPEED.MEDIUM;
+    if (pct <= 87) return FAN_SPEED.HIGH;
     return FAN_SPEED.TURBO;
   }
 
