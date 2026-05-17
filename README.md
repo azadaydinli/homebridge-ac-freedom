@@ -20,8 +20,8 @@
   <a href="https://www.npmjs.com/package/homebridge-ac-freedom">
     <img src="https://img.shields.io/npm/dt/homebridge-ac-freedom" alt="Total downloads">
   </a>
-  <a href="https://github.com/azadaydinli/homebridge-ac-freedom/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/azadaydinli/homebridge-ac-freedom" alt="License">
+  <a href="https://www.npmjs.com/package/homebridge-ac-freedom">
+    <img src="https://img.shields.io/npm/dw/homebridge-ac-freedom" alt="Weekly downloads">
   </a>
   <a href="https://ko-fi.com/azadaydinli">
     <img src="https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi">
