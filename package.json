@@ -16,6 +16,16 @@
   ],
   "author": "azadaydinli",
   "license": "MIT",
+  "funding": [
+    {
+      "type": "ko_fi",
+      "url": "https://ko-fi.com/azadaydinli"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/azadaydinli"
+    }
+  ],
   "bugs": {
     "url": "https://github.com/azadaydinli/homebridge-ac-freedom/issues"
   },

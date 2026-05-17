@@ -1,82 +1,103 @@
 <p align="center">
-  <a href="https://homebridge.io"><img src="https://raw.githubusercontent.com/homebridge/branding/master/logos/homebridge-wordmark-logo-horizontal.png" height="60"></a>
+  <a href="https://homebridge.io">
+    <img src="https://raw.githubusercontent.com/homebridge/branding/master/logos/homebridge-wordmark-logo-horizontal.png" height="60">
+  </a>
 </p>
 
-# homebridge-ac-freedom
+<h1 align="center">homebridge-ac-freedom</h1>
 
-[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat&logoColor=%23FFFFFF&logo=homebridge)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
-[![npm](https://img.shields.io/npm/v/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
-[![npm](https://img.shields.io/npm/dt/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
-[![GitHub](https://img.shields.io/github/license/azadaydinli/homebridge-ac-freedom)](https://github.com/azadaydinli/homebridge-ac-freedom/blob/main/LICENSE)
+<p align="center">
+  Control AUX-based air conditioners in Apple HomeKit — Cloud or Local, no extra hub needed.
+</p>
 
-A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air conditioners** (AUX, Ballu, Centek, Dunham Bush, Kenwood, Rinnai, Rcool, Tornado, and other brands using the **AC Freedom** app) via **Apple HomeKit**.
+<p align="center">
+  <a href="https://github.com/homebridge/homebridge/wiki/Verified-Plugins">
+    <img src="https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat&logoColor=%23FFFFFF&logo=homebridge" alt="Homebridge Verified">
+  </a>
+  <a href="https://www.npmjs.com/package/homebridge-ac-freedom">
+    <img src="https://img.shields.io/npm/v/homebridge-ac-freedom" alt="npm version">
+  </a>
+  <a href="https://www.npmjs.com/package/homebridge-ac-freedom">
+    <img src="https://img.shields.io/npm/dt/homebridge-ac-freedom" alt="Total downloads">
+  </a>
+  <a href="https://github.com/azadaydinli/homebridge-ac-freedom/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/azadaydinli/homebridge-ac-freedom" alt="License">
+  </a>
+  <a href="https://ko-fi.com/azadaydinli">
+    <img src="https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi">
+  </a>
+  <a href="https://github.com/sponsors/azadaydinli">
+    <img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github" alt="GitHub Sponsors">
+  </a>
+</p>
 
-Supports both **Cloud** (AUX Cloud API) and **Local** (Broadlink UDP) connections.
+---
+
+A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air conditioners** via **Apple HomeKit**. Works with any AC that uses the **AC Freedom** app. Supports **Cloud** (AUX API) and **Local** (Broadlink UDP) connections — no extra hub required.
+
+---
 
 ## Features
 
-- **HeaterCooler** service with Auto, Cool, and Heat modes
-- **Fan speed** control (Auto, Mute, Low, Medium, High, Turbo) via linked Fanv2 service
-- **Swing** mode (vertical + horizontal)
+- **HeaterCooler** tile — Auto, Heat, Cool modes
+- **Fan speed** control — Auto / Low / Medium / High / Turbo (25% steps)
+- **Swing** mode — vertical + horizontal
 - **Preset switches** inside the climate card:
   - Sleep Mode
   - Health / Ionizer
   - Eco / Mildew Prevention
   - Self Clean
   - Comfortable Wind
-- **Display** switch (LED display on/off)
-- **Dual connection modes:**
-  - **Cloud** -- AUX Cloud API (AC Freedom app account), no local network access needed
-  - **Local** -- Direct Broadlink UDP control, no internet required
-- **Auto-discovery** of cloud devices (or specify a Device ID)
-- **Temperature step** selection (0.5 or 1 degree)
-- **Configurable poll interval** (5--300 seconds)
+- **Display** switch — LED display on/off
+- **Auto-reset** — fan and sleep reset to default when AC turns on or off
+- **Cloud** — AUX Cloud API via AC Freedom app credentials
+- **Local** — Direct Broadlink UDP, no internet required
+- **Multi-device** — configure as many ACs as needed
+- Homebridge v1 & v2 compatible
+
+---
 
 ## Supported Brands
 
-Any air conditioner that works with the **AC Freedom** app is supported. Known brands include:
+Any air conditioner compatible with the **AC Freedom** app is supported:
 
-| Brand | Brand | Brand |
-|-------|-------|-------|
-| AUX | Ballu | Centek |
-| Dunham Bush | Kenwood | Rinnai |
-| Rcool | Tornado | Akai |
-| Hyundai | Hisense | Royal Clima |
+| | | | |
+|---|---|---|---|
+| AUX | Ballu | Centek | Dunham Bush |
+| Kenwood | Rinnai | Rcool | Tornado |
+| Akai | Hyundai | Hisense | Royal Clima |
+
+---
 
 ## Requirements
 
-- [Homebridge](https://homebridge.io) v1.6.0 or later
+- [Homebridge](https://homebridge.io) v1.6.0 or later (v2 supported)
 - Node.js v18.0.0 or later
 - An AUX-compatible AC with Wi-Fi (Broadlink module)
-- **Cloud mode:** AC Freedom app account (email registration)
-- **Local mode:** AC's IP and MAC address on your local network
+- **Cloud:** AC Freedom app account (email registration)
+- **Local:** AC's IP and MAC address on your local network
+
+---
 
 ## Installation
 
-### Via Homebridge UI (Recommended)
+**Via Homebridge UI (recommended):**
 
-1. Open the Homebridge UI
-2. Go to **Plugins**
-3. Search for `homebridge-ac-freedom`
-4. Click **Install**
+1. Open the Homebridge UI → **Plugins**
+2. Search for `homebridge-ac-freedom`
+3. Click **Install**
 
-### Via Command Line
+**Via terminal:**
 
 ```bash
 npm install -g homebridge-ac-freedom
 ```
 
+---
+
 ## Configuration
 
-### Using Homebridge UI
-
-The easiest way to configure the plugin is through the Homebridge UI settings page. All options are available with descriptions.
-
-### Manual Configuration
-
-Add the following to your Homebridge `config.json`:
-
-#### Cloud Mode
+### Cloud Mode
 
 ```json
 {
@@ -84,15 +105,12 @@ Add the following to your Homebridge `config.json`:
     {
       "platform": "AcFreedom",
       "name": "AC Freedom",
-      "devices": [
+      "cloudDevices": [
         {
           "name": "Living Room AC",
-          "connection": "cloud",
-          "cloud": {
-            "email": "your-email@example.com",
-            "password": "your-password",
-            "region": "eu"
-          }
+          "email": "your-email@example.com",
+          "password": "your-password",
+          "region": "eu"
         }
       ]
     }
@@ -100,7 +118,7 @@ Add the following to your Homebridge `config.json`:
 }
 ```
 
-#### Local Mode
+### Local Mode
 
 ```json
 {
@@ -108,14 +126,11 @@ Add the following to your Homebridge `config.json`:
     {
       "platform": "AcFreedom",
       "name": "AC Freedom",
-      "devices": [
+      "localDevices": [
         {
           "name": "Bedroom AC",
-          "connection": "local",
-          "local": {
-            "ip": "192.168.1.100",
-            "mac": "AA:BB:CC:DD:EE:FF"
-          }
+          "ip": "192.168.1.100",
+          "mac": "AA:BB:CC:DD:EE:FF"
         }
       ]
     }
@@ -123,91 +138,109 @@ Add the following to your Homebridge `config.json`:
 }
 ```
 
-### Configuration Options
+---
 
-#### Device Options
+## Configuration Options
+
+### Cloud Device Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Device name in HomeKit |
+| `email` | string | Yes | — | AC Freedom app email |
+| `password` | string | Yes | — | AC Freedom app password |
+| `region` | string | No | `"eu"` | Server region: `eu`, `usa`, `cn`, `rus` |
+| `deviceId` | string | No | — | Specific device ID (leave empty to auto-detect) |
+| `showExtras` | boolean | No | `false` | Show fan, sleep, and extra switches |
+| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
+
+### Local Device Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Device name in HomeKit |
+| `ip` | string | Yes | — | AC unit's local IP address |
+| `mac` | string | Yes | — | AC unit's MAC address (`AA:BB:CC:DD:EE:FF`) |
+| `showExtras` | boolean | No | `false` | Show fan, sleep, and extra switches |
+| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
+
+### Feature Switches
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `name` | string | `"AC Freedom"` | Device name shown in HomeKit |
-| `connection` | string | `"cloud"` | Connection mode: `"cloud"` or `"local"` |
-| `pollInterval` | integer | `30` | State polling interval in seconds (5--300) |
-| `tempStep` | number | `0.5` | Temperature adjustment step: `0.5` or `1` |
+| `presets.sleep` | boolean | `true` | Sleep Mode switch |
+| `presets.health` | boolean | `true` | Health / Ionizer switch |
+| `presets.eco` | boolean | `true` | Eco / Mildew Prevention switch |
+| `presets.clean` | boolean | `true` | Self Clean switch |
+| `showComfWind` | boolean | `true` | Comfortable Wind switch |
+| `showDisplay` | boolean | `true` | Display (LED) switch |
+| `showFan` | boolean | `true` | Fan speed slider |
 
-#### Cloud Options
-
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `email` | string | Yes | AC Freedom app email |
-| `password` | string | Yes | AC Freedom app password |
-| `region` | string | No | Server region: `"eu"`, `"usa"`, `"cn"`, `"rus"` (default: `"eu"`) |
-| `deviceId` | string | No | Specific device endpoint ID (leave empty for auto-detect) |
-
-#### Local Options
-
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `ip` | string | Yes | AC unit's IP address on your local network |
-| `mac` | string | Yes | AC unit's MAC address (`AA:BB:CC:DD:EE:FF` format) |
-
-#### Feature Switches
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `presets.sleep` | boolean | `true` | Show Sleep Mode switch |
-| `presets.health` | boolean | `true` | Show Health / Ionizer switch |
-| `presets.eco` | boolean | `true` | Show Eco / Mildew Prevention switch |
-| `presets.clean` | boolean | `true` | Show Self Clean switch |
-| `showComfWind` | boolean | `true` | Show Comfortable Wind switch |
-| `showDisplay` | boolean | `true` | Show Display (LED) switch |
+---
 
 ## HomeKit Climate Card
 
-Once configured, the AC appears as a **HeaterCooler** tile in the Home app. Tapping on it reveals:
+Once configured, the AC appears as a **HeaterCooler** tile. Tapping it reveals:
 
-- **Temperature control** with heating/cooling thresholds
-- **Mode selector** (Auto / Heat / Cool)
-- **Fan speed** slider
-- **Swing** toggle
-- **Preset switches** (Sleep, Health, Eco, Clean, Comfortable Wind, Display)
+- Temperature control with heating/cooling thresholds
+- Mode selector — Auto / Heat / Cool
+- Fan speed slider — 0% Auto · 25% Low · 50% Medium · 75% High · 100% Turbo
+- Swing toggle
+- Preset switches — Sleep, Health, Eco, Clean, Comfortable Wind, Display
 
-All linked services appear as tiles inside the climate card for quick access.
+All linked services appear as tiles inside the climate card.
+
+---
 
 ## Cloud vs Local
 
-| Feature | Cloud | Local |
-|---------|-------|-------|
+| | Cloud | Local |
+|---|---|---|
 | Internet required | Yes | No |
-| Setup complexity | Easy (email + password) | Moderate (IP + MAC) |
-| Response speed | ~1-2 seconds | ~0.5 seconds |
-| Works outside home | Yes | No |
-| Firmware updates | Via AC Freedom app | N/A |
+| Setup | Easy (email + password) | Moderate (IP + MAC) |
+| Response time | ~1–2 s | ~0.5 s |
+| Works remotely | Yes | No |
+
+---
 
 ## Troubleshooting
 
-### Cloud login fails
-- Verify your credentials work in the **AC Freedom** app
-- Make sure you registered with an **email** (phone number login is not supported)
-- Check the **region** setting matches your account
-- Logging in via the AC Freedom app may invalidate the plugin session -- restart Homebridge after using the app
+**Cloud login fails**
+- Verify credentials work in the AC Freedom app
+- Phone number login is not supported — use email registration
+- Check the `region` matches your account region
+- Logging into the AC Freedom app may invalidate the plugin session — restart Homebridge after using the app
 
-### Device not found
-- For cloud: leave `deviceId` empty to auto-detect, or find it in Homebridge logs
-- For local: ensure the AC is connected to your Wi-Fi and the IP/MAC are correct
+**Device not found**
+- Cloud: leave `deviceId` empty for auto-detect, or find it in Homebridge logs
+- Local: confirm the AC is on your Wi-Fi and the IP/MAC are correct
 
-### Poll errors ("server busy")
-- Transient cloud server errors are automatically suppressed
-- If persistent, try increasing `pollInterval` to 60 or higher
+**"Server busy" errors**
+- These are transient and automatically suppressed
+- If persistent, increase `pollInterval` to 60 or higher
 
-### AC not responding to commands
-- Check if the AC is powered on and connected to Wi-Fi
-- For local mode: ensure Homebridge and the AC are on the same network
+**AC not responding**
+- Check the AC is powered on and connected to Wi-Fi
+- Local mode: Homebridge and AC must be on the same network
 - Try restarting Homebridge
+
+---
+
+## Support
+
+If this plugin is useful to you, consider supporting its development:
+
+[![Ko-fi](https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/azadaydinli)
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github)](https://github.com/sponsors/azadaydinli)
+
+---
 
 ## Contributing
 
 Contributions are welcome! Please open an [issue](https://github.com/azadaydinli/homebridge-ac-freedom/issues) or submit a pull request.
 
+---
+
 ## License
 
-MIT -- see [LICENSE](LICENSE) for details.
+MIT © [Azad Aydınlı](https://github.com/azadaydinli)
