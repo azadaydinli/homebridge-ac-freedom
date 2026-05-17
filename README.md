@@ -1,14 +1,8 @@
 <p align="center">
-  <a href="https://homebridge.io">
-    <img src="https://raw.githubusercontent.com/homebridge/branding/master/logos/homebridge-wordmark-logo-horizontal.png" height="60">
-  </a>
+  <img src="https://raw.githubusercontent.com/azadaydinli/homebridge-ac-freedom/main/banner.svg" width="800">
 </p>
 
-<h1 align="center">homebridge-ac-freedom</h1>
-
-<p align="center">
-  Control AUX-based air conditioners in Apple HomeKit — Cloud or Local, no extra hub needed.
-</p>
+<span align="center">
 
 <p align="center">
   <a href="https://github.com/homebridge/homebridge/wiki/Verified-Plugins">
@@ -30,6 +24,8 @@
     <img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github" alt="GitHub Sponsors">
   </a>
 </p>
+
+</span>
 
 ---
 
