@@ -4,32 +4,18 @@
 
 <span align="center">
 
-<p align="center">
-  <a href="https://github.com/homebridge/homebridge/wiki/Verified-Plugins">
-    <img src="https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat&logoColor=%23FFFFFF&logo=homebridge" alt="Homebridge Verified">
-  </a>
-  <a href="https://www.npmjs.com/package/homebridge-ac-freedom">
-    <img src="https://img.shields.io/npm/v/homebridge-ac-freedom" alt="npm version">
-  </a>
-  <a href="https://www.npmjs.com/package/homebridge-ac-freedom">
-    <img src="https://img.shields.io/npm/dt/homebridge-ac-freedom" alt="Total downloads">
-  </a>
-  <a href="https://www.npmjs.com/package/homebridge-ac-freedom">
-    <img src="https://img.shields.io/npm/dw/homebridge-ac-freedom" alt="Weekly downloads">
-  </a>
-  <a href="https://ko-fi.com/azadaydinli">
-    <img src="https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi">
-  </a>
-  <a href="https://github.com/sponsors/azadaydinli">
-    <img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github" alt="GitHub Sponsors">
-  </a>
-</p>
-
-</span>
-
----
+# Homebridge AC Freedom
 
 A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air conditioners** via **Apple HomeKit**. Works with any AC that uses the **AC Freedom** app. Supports **Cloud** (AUX API) and **Local** (Broadlink UDP) connections — no extra hub required.
+
+[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat&logoColor=%23FFFFFF&logo=homebridge)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+[![npm](https://img.shields.io/npm/v/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
+[![npm](https://img.shields.io/npm/dw/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
+[![npm](https://img.shields.io/npm/dt/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
+[![Ko-fi](https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/azadaydinli)
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github)](https://github.com/sponsors/azadaydinli)
+
+</span>
 
 ---
 
