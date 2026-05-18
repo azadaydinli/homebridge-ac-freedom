@@ -241,8 +241,7 @@
       <div class="creds-card">
         <div class="creds-header">☁️ ${t.cloudCredentials||'Cloud Credentials'}</div>
         <div class="creds-body">
-          <div class="hint">${t.emailHint||'AC Freedom app account email'} · ${t.passwordHint||'AC Freedom app password'}</div>
-          <div class="row-3" style="margin-top:8px">
+          <div class="row-3">
             <div class="fg" style="margin-bottom:0">
               <label>${t.email||'Email'}</label>
               <input type="email" id="cloud-email" value="${esc(config.cloud.email||'')}" placeholder="user@example.com">
@@ -342,24 +341,19 @@
 
           <!-- Hybrid: endpoint ID + optional local override -->
           <div id="hybrid-sec-${i}" style="${isHybrid ? '' : 'display:none'}">
-            <div class="section-hd">🔀 ${t.hybrid||'Hybrid'}</div>
             <div class="fieldset">
               <div class="fg">
                 <label>${t.endpointId||'Device ID'} <span style="font-weight:400;color:var(--text-muted)">(${t.deviceIdOptional||'optional'})</span></label>
-                <div class="hint">${t.endpointIdHint||'Auto-filled via Fetch Devices. Leave empty to use the first discovered device.'}</div>
                 <input type="text" class="h-field" data-i="${i}" data-f="endpointId" value="${esc(d.endpointId||'')}" placeholder="auto-detect">
               </div>
-              <div class="section-hd" style="margin-top:4px">📡 ${t.localOverride||'Local Override (optional)'}</div>
-              <div class="hint" style="margin-bottom:10px">${t.localOverrideHint||'Add IP + MAC for direct local connection. Local is preferred over cloud when available.'}</div>
-              <div class="row-2">
+              <div class="section-hd" style="margin-top:4px">📡 ${t.localOverride||'Local Override'} <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">(${t.deviceIdOptional||'optional'})</span></div>
+              <div class="row-2" style="margin-top:8px">
                 <div class="fg" style="margin-bottom:0">
                   <label>${t.ip||'IP Address'}</label>
-                  <div class="hint">${t.ipHint||"AC unit's local IP (e.g. 192.168.1.100)"}</div>
                   <input type="text" class="l-field" data-i="${i}" data-f="ip" value="${esc(local.ip||'')}" placeholder="192.168.1.100">
                 </div>
                 <div class="fg" style="margin-bottom:0">
                   <label>${t.mac||'MAC Address'}</label>
-                  <div class="hint">${t.macHint||'Format: AA:BB:CC:DD:EE:FF'}</div>
                   <input type="text" class="l-field" data-i="${i}" data-f="mac" value="${esc(local.mac||'')}" placeholder="AA:BB:CC:DD:EE:FF">
                 </div>
               </div>
@@ -368,17 +362,14 @@
 
           <!-- Local Only: required IP + MAC -->
           <div id="local-sec-${i}" style="${!isHybrid ? '' : 'display:none'}">
-            <div class="section-hd">📡 ${t.localSettings||'Local Settings'}</div>
-            <div class="fieldset">
+            <div class="fieldset" style="margin-top:4px">
               <div class="row-2">
                 <div class="fg" style="margin-bottom:0">
                   <label>${t.ip||'IP Address'}</label>
-                  <div class="hint">${t.ipHint||"AC unit's local IP (e.g. 192.168.1.100)"}</div>
                   <input type="text" class="l-field" data-i="${i}" data-f="ip" value="${esc(local.ip||'')}" placeholder="192.168.1.100">
                 </div>
                 <div class="fg" style="margin-bottom:0">
                   <label>${t.mac||'MAC Address'}</label>
-                  <div class="hint">${t.macHint||'Format: AA:BB:CC:DD:EE:FF'}</div>
                   <input type="text" class="l-field" data-i="${i}" data-f="mac" value="${esc(local.mac||'')}" placeholder="AA:BB:CC:DD:EE:FF">
                 </div>
               </div>
@@ -387,7 +378,6 @@
 
           <!-- Features -->
           <div class="section-hd">${t.features||'Features'}</div>
-          <div class="hint" style="margin-bottom:8px">💡 ${t.featuresHint||'For a clean HomeKit appearance, enabling only Fan and Sleep is recommended.'}</div>
           <div class="toggle-rows">
             <div class="toggle-row">
               ${featRow1.map(f => `
@@ -412,7 +402,6 @@
           <div class="row-2">
             <div class="fg" style="margin-bottom:0">
               <label>${t.tempStep||'Temperature Step'}</label>
-              <div class="hint">${t.tempStepHint||'Minimum temperature adjustment increment'}</div>
               <select class="d-field" data-i="${i}" data-f="tempStep">
                 <option value="0.5" ${step==0.5?'selected':''}>0.5 °C</option>
                 <option value="1"   ${step==1  ?'selected':''}>1.0 °C</option>
@@ -420,7 +409,6 @@
             </div>
             <div class="fg" style="margin-bottom:0">
               <label>${t.pollInterval||'Poll Interval (seconds)'}</label>
-              <div class="hint">${t.pollIntervalHint||'How often to fetch the AC state (5–300)'}</div>
               <input type="number" class="d-field" data-i="${i}" data-f="pollInterval" min="5" max="300" value="${poll}">
             </div>
           </div>
