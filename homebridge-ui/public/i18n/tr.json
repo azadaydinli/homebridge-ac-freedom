@@ -37,5 +37,6 @@
   "pollInterval": "Sorgulama Aralığı (saniye)",
   "pollIntervalHint": "Klima durumunun ne sıklıkla sorgulanacağı (5–300)",
   "addDevice": "Cihaz Ekle",
-  "remove": "Kaldır"
+  "remove": "Kaldır",
+  "featuresHint": "Temiz bir HomeKit görünümü için Fan ve yalnızca bir ön ayar modunun (önerilen: Uyku) etkinleştirilmesi tavsiye edilir."
 }

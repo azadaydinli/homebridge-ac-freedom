@@ -37,5 +37,6 @@
   "pollInterval": "轮询间隔（秒）",
   "pollIntervalHint": "获取空调状态的频率（5–300）",
   "addDevice": "添加设备",
-  "remove": "删除"
+  "remove": "删除",
+  "featuresHint": "为保持 HomeKit 界面整洁，建议仅启用风扇和一个预设模式 — 推荐选择睡眠。"
 }

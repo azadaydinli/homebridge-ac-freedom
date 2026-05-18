@@ -37,5 +37,6 @@
   "pollInterval": "폴링 간격 (초)",
   "pollIntervalHint": "에어컨 상태 조회 빈도 (5–300)",
   "addDevice": "기기 추가",
-  "remove": "제거"
+  "remove": "제거",
+  "featuresHint": "깔끔한 HomeKit 화면을 위해 팬과 프리셋 모드 하나만 활성화하는 것을 권장합니다 — 수면을 추천합니다."
 }

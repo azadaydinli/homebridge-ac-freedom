@@ -37,5 +37,6 @@
   "pollInterval": "Intervalle d'interrogation (secondes)",
   "pollIntervalHint": "Fréquence de récupération de l'état du climatiseur (5–300)",
   "addDevice": "Ajouter un appareil",
-  "remove": "Supprimer"
+  "remove": "Supprimer",
+  "featuresHint": "Pour un affichage HomeKit épuré, il est recommandé d'activer le Ventilateur et un seul mode prédéfini — Sommeil est le choix conseillé."
 }

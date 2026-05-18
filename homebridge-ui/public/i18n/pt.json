@@ -37,5 +37,6 @@
   "pollInterval": "Intervalo de consulta (segundos)",
   "pollIntervalHint": "Com que frequência buscar o estado do AC (5–300)",
   "addDevice": "Adicionar dispositivo",
-  "remove": "Remover"
+  "remove": "Remover",
+  "featuresHint": "Para uma aparência limpa no HomeKit, recomenda-se ativar o Ventilador e apenas um modo predefinido — Sono é a escolha sugerida."
 }

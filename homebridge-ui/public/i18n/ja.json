@@ -37,5 +37,6 @@
   "pollInterval": "ポーリング間隔（秒）",
   "pollIntervalHint": "エアコンの状態を取得する頻度（5〜300）",
   "addDevice": "デバイスを追加",
-  "remove": "削除"
+  "remove": "削除",
+  "featuresHint": "すっきりしたHomeKit表示のために、ファンと1つのプリセットモードのみ有効にすることをお勧めします — スリープが推奨です。"
 }

@@ -37,5 +37,6 @@
   "pollInterval": "Poll-interval (seconden)",
   "pollIntervalHint": "Hoe vaak de AC-status wordt opgehaald (5–300)",
   "addDevice": "Apparaat toevoegen",
-  "remove": "Verwijderen"
+  "remove": "Verwijderen",
+  "featuresHint": "Voor een overzichtelijk HomeKit-uiterlijk wordt aanbevolen alleen de Ventilator en één voorkeursmodus in te schakelen — Slaap is de aanbevolen keuze."
 }

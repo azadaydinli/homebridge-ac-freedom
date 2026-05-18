@@ -37,5 +37,6 @@
   "pollInterval": "Abfrageintervall (Sekunden)",
   "pollIntervalHint": "Wie oft der AC-Status abgerufen wird (5–300)",
   "addDevice": "Gerät hinzufügen",
-  "remove": "Entfernen"
+  "remove": "Entfernen",
+  "featuresHint": "Für ein übersichtliches HomeKit-Layout wird empfohlen, nur den Lüfter und einen einzigen Voreinstellungsmodus zu aktivieren — empfohlen wird Schlaf."
 }

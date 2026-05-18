@@ -37,5 +37,6 @@
   "pollInterval": "Poll Interval (seconds)",
   "pollIntervalHint": "How often to fetch the AC state (5–300)",
   "addDevice": "Add Device",
-  "remove": "Remove"
+  "remove": "Remove",
+  "featuresHint": "For a clean HomeKit appearance, it is recommended to enable Fan and only one preset mode — Sleep is the suggested choice."
 }

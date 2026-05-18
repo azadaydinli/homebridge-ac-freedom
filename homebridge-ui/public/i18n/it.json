@@ -37,5 +37,6 @@
   "pollInterval": "Intervallo polling (secondi)",
   "pollIntervalHint": "Ogni quanto recuperare lo stato del AC (5–300)",
   "addDevice": "Aggiungi dispositivo",
-  "remove": "Rimuovi"
+  "remove": "Rimuovi",
+  "featuresHint": "Per un aspetto HomeKit ordinato, si consiglia di abilitare il Ventilatore e un solo modo preimpostato — Sonno è la scelta suggerita."
 }
