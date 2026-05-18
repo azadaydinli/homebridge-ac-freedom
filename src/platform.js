@@ -141,8 +141,16 @@ class AcFreedomPlatform {
     }
 
     if (!sharedCloud) {
+      // Cloud unavailable — fall back to local if IP+MAC is configured
+      if (deviceConfig.local?.ip && deviceConfig.local?.mac) {
+        this.log.warn(
+          'Hybrid device %s: cloud unavailable — starting in local-only mode at %s',
+          deviceConfig.name, deviceConfig.local.ip,
+        );
+        return this.setupLocalDevice(deviceConfig);
+      }
       this.log.error(
-        'Hybrid device %s: no cloud credentials configured (add cloud.email/password at platform level)',
+        'Hybrid device %s: cloud unavailable and no local IP/MAC configured',
         deviceConfig.name,
       );
       return null;
@@ -154,6 +162,14 @@ class AcFreedomPlatform {
     if (endpointId) {
       cloudDevice = sharedCloud.devices.find(d => d.endpointId === endpointId);
       if (!cloudDevice) {
+        // endpointId not found in cloud — fall back to local if available
+        if (deviceConfig.local?.ip && deviceConfig.local?.mac) {
+          this.log.warn(
+            'Hybrid device %s: endpointId "%s" not found in cloud — starting in local-only mode',
+            deviceConfig.name, endpointId,
+          );
+          return this.setupLocalDevice(deviceConfig);
+        }
         this.log.error(
           'Hybrid device %s: endpointId "%s" not found among cloud devices',
           deviceConfig.name, endpointId,

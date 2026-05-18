@@ -239,11 +239,13 @@ All linked services appear as tiles inside the climate card.
 
 | | Hybrid | Local Only |
 |---|---|---|
-| Internet required | Yes (initial + polling) | No |
+| Internet required | For setup only¹ | No |
 | Setup | Easy — Fetch button auto-fills | Moderate (IP + MAC required) |
 | Response time | ~1–2 s (cloud) / ~0.5 s (local) | ~0.5 s |
 | Works remotely | Yes | No |
 | Local fallback | Yes (when IP + MAC configured) | — |
+
+> ¹ **Hybrid + IP/MAC:** if internet is unavailable at startup, the device starts in local-only mode automatically. Full hybrid resumes on the next restart when internet is available.
 
 ---
 

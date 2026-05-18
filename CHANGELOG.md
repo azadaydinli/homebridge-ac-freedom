@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.3
+
+- **Hybrid offline startup** — if cloud is unavailable at Homebridge startup and the device has a local IP + MAC configured, the device now starts in local-only mode instead of failing. Full hybrid mode resumes automatically on the next restart when internet is available.
+- **Hybrid endpoint fallback** — if a configured `endpointId` is not found in the cloud device list (e.g. after a cloud outage), the device also falls back to local-only mode when IP + MAC are set.
+
 ## 2.3.2
 
 - **Fix AUTO mode byte overflow** — local protocol uses 3-bit mode field; AUTO is now correctly encoded as 0 (not 8, which silently truncated to 0 in the wrong byte position)
