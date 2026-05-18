@@ -441,9 +441,11 @@ class AcFreedomAccessory {
     this.state.health      = !!s.health;
     this.state.eco         = !!s.mildew;
     this.state.clean       = !!s.clean;
+    this.state.comfwind    = !!s.comfwind;
     this.state.display     = !!s.display;
 
-    const modeMap = { 1: CLOUD_MODE.COOL, 2: CLOUD_MODE.DRY, 4: CLOUD_MODE.HEAT, 6: CLOUD_MODE.FAN, 8: CLOUD_MODE.AUTO };
+    // AUTO is 0 in the local protocol; 8 is unused (3-bit shift max = 7)
+    const modeMap = { 0: CLOUD_MODE.AUTO, 1: CLOUD_MODE.COOL, 2: CLOUD_MODE.DRY, 4: CLOUD_MODE.HEAT, 6: CLOUD_MODE.FAN };
     this.state.mode = modeMap[s.mode] ?? CLOUD_MODE.AUTO;
   }
 
@@ -502,184 +504,117 @@ class AcFreedomAccessory {
     return cloudFn();
   }
 
+  // Routes to local, hybrid, or cloud based on connection type.
+  async _send(localFn, cloudFn) {
+    const t = this.deviceApi.type;
+    if (t === 'local')  return localFn();
+    if (t === 'hybrid') return this.hybridSend(localFn, cloudFn);
+    return cloudFn(); // legacy 'cloud' type
+  }
+
   // ── Send commands ──────────────────────────────────────────────
   async sendPower(on) {
-    const t = this.deviceApi.type;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => { const a = this._localApi; a.state.power = on ? 1 : 0; return a.setState(); },
-        () => this.cloudSet({ [CLOUD.POWER]: on ? 1 : 0 }),
-      );
-    }
-    if (t === 'local') {
-      this._localApi.state.power = on ? 1 : 0;
-      await this._localApi.setState();
-    } else {
-      await this.cloudSet({ [CLOUD.POWER]: on ? 1 : 0 });
-    }
+    return this._send(
+      () => { const a = this._localApi; a.state.power = on ? 1 : 0; return a.setState(); },
+      () => this.cloudSet({ [CLOUD.POWER]: on ? 1 : 0 }),
+    );
   }
 
   async sendMode(mode) {
+    // AUTO is 0 in local protocol (mode=8 would overflow the 3-bit field)
     const localModeMap = {
-      [CLOUD_MODE.AUTO]: 8, [CLOUD_MODE.COOL]: 1,
+      [CLOUD_MODE.AUTO]: 0, [CLOUD_MODE.COOL]: 1,
       [CLOUD_MODE.HEAT]: 4, [CLOUD_MODE.DRY]: 2, [CLOUD_MODE.FAN]: 6,
     };
-    const t = this.deviceApi.type;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => {
-          const a = this._localApi;
-          a.state.power = 1;
-          a.state.mode  = localModeMap[mode] ?? 8;
-          return a.setState();
-        },
-        () => this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode }),
-      );
-    }
-    if (t === 'local') {
-      const a = this._localApi;
-      a.state.power = 1;
-      a.state.mode  = localModeMap[mode] ?? 8;
-      await a.setState();
-    } else {
-      await this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode });
-    }
+    return this._send(
+      () => {
+        const a = this._localApi;
+        a.state.power = 1;
+        a.state.mode  = localModeMap[mode] ?? 0;
+        return a.setState();
+      },
+      () => this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode }),
+    );
   }
 
   async sendTemperature(temp) {
-    const t = this.deviceApi.type;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => { const a = this._localApi; a.state.temperature = temp; return a.setState(); },
-        () => this.cloudSet({ [CLOUD.TEMP_TARGET]: Math.round(temp * 10) }),
-      );
-    }
-    if (t === 'local') {
-      this._localApi.state.temperature = temp;
-      await this._localApi.setState();
-    } else {
-      await this.cloudSet({ [CLOUD.TEMP_TARGET]: Math.round(temp * 10) });
-    }
+    return this._send(
+      () => { const a = this._localApi; a.state.temperature = temp; return a.setState(); },
+      () => this.cloudSet({ [CLOUD.TEMP_TARGET]: Math.round(temp * 10) }),
+    );
   }
 
   async sendFanSpeed(speed) {
-    const t = this.deviceApi.type;
     // speed is canonical cloud numbering; convert for local
     const localSpeed = CLOUD_TO_LOCAL_FAN[speed] ?? 0;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => {
-          const a = this._localApi;
-          a.state.fanSpeed = localSpeed;
-          a.state.turbo    = speed === FAN_SPEED.TURBO ? 1 : 0;
-          a.state.mute     = 0;
-          return a.setState();
-        },
-        () => this.cloudSet({ [CLOUD.FAN_SPEED]: speed }),
-      );
-    }
-    if (t === 'local') {
-      const a = this._localApi;
-      a.state.fanSpeed = localSpeed;
-      a.state.turbo    = speed === FAN_SPEED.TURBO ? 1 : 0;
-      a.state.mute     = 0;
-      await a.setState();
-    } else {
-      await this.cloudSet({ [CLOUD.FAN_SPEED]: speed });
-    }
+    return this._send(
+      () => {
+        const a = this._localApi;
+        a.state.fanSpeed = localSpeed;
+        a.state.turbo    = speed === FAN_SPEED.TURBO ? 1 : 0;
+        a.state.mute     = 0;
+        return a.setState();
+      },
+      () => this.cloudSet({ [CLOUD.FAN_SPEED]: speed }),
+    );
   }
 
   async sendSwing(v, h) {
-    const t = this.deviceApi.type;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => {
-          const a = this._localApi;
-          a.state.verticalFixation   = v ? 7 : 0;
-          a.state.horizontalFixation = h ? 7 : 0;
-          return a.setState();
-        },
-        () => this.cloudSet({ [CLOUD.SWING_V]: v ? 1 : 0, [CLOUD.SWING_H]: h ? 1 : 0 }),
-      );
-    }
-    if (t === 'local') {
-      const a = this._localApi;
-      a.state.verticalFixation   = v ? 7 : 0;
-      a.state.horizontalFixation = h ? 7 : 0;
-      await a.setState();
-    } else {
-      await this.cloudSet({ [CLOUD.SWING_V]: v ? 1 : 0, [CLOUD.SWING_H]: h ? 1 : 0 });
-    }
+    return this._send(
+      () => {
+        const a = this._localApi;
+        a.state.verticalFixation   = v ? 7 : 0;
+        a.state.horizontalFixation = h ? 7 : 0;
+        return a.setState();
+      },
+      () => this.cloudSet({ [CLOUD.SWING_V]: v ? 1 : 0, [CLOUD.SWING_H]: h ? 1 : 0 }),
+    );
   }
 
   async sendPreset(key, on) {
     const cfg = this.presetConfigs[key];
     if (!cfg) return;
-
     const cloudUpdate = {
       [CLOUD.SLEEP]: 0, [CLOUD.HEALTH]: 0,
       [CLOUD.ECO]: 0,   [CLOUD.CLEAN]: 0,
     };
     if (on) cloudUpdate[cfg.cloudKey] = 1;
-
-    const t = this.deviceApi.type;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => {
-          const a = this._localApi;
-          a.state.sleep = 0; a.state.health = 0;
-          a.state.mildew = 0; a.state.clean = 0;
-          if (on) a.state[cfg.localAttr] = 1;
-          return a.setState();
-        },
-        () => this.cloudSet(cloudUpdate),
-      );
-    }
-    if (t === 'local') {
-      const a = this._localApi;
-      a.state.sleep = 0; a.state.health = 0;
-      a.state.mildew = 0; a.state.clean = 0;
-      if (on) a.state[cfg.localAttr] = 1;
-      await a.setState();
-    } else {
-      await this.cloudSet(cloudUpdate);
-    }
+    return this._send(
+      () => {
+        const a = this._localApi;
+        a.state.sleep = 0; a.state.health = 0;
+        a.state.mildew = 0; a.state.clean = 0;
+        if (on) a.state[cfg.localAttr] = 1;
+        return a.setState();
+      },
+      () => this.cloudSet(cloudUpdate),
+    );
   }
 
   async sendComfWind(on) {
-    const t = this.deviceApi.type;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => { const a = this._localApi; a.state.comfwind = on ? 1 : 0; return a.setState(); },
-        () => this.cloudSet({ [CLOUD.COMFWIND]: on ? 1 : 0 }),
-      );
-    }
-    if (t === 'local') {
-      this._localApi.state.comfwind = on ? 1 : 0;
-      await this._localApi.setState();
-    } else {
-      await this.cloudSet({ [CLOUD.COMFWIND]: on ? 1 : 0 });
-    }
+    return this._send(
+      () => { const a = this._localApi; a.state.comfwind = on ? 1 : 0; return a.setState(); },
+      () => this.cloudSet({ [CLOUD.COMFWIND]: on ? 1 : 0 }),
+    );
   }
 
   async sendDisplay(on) {
-    const t = this.deviceApi.type;
-    if (t === 'hybrid') {
-      return this.hybridSend(
-        () => { const a = this._localApi; a.state.display = on ? 1 : 0; return a.setState(); },
-        () => this.cloudSet({ [CLOUD.DISPLAY]: on ? 1 : 0 }),
-      );
-    }
-    if (t === 'local') {
-      this._localApi.state.display = on ? 1 : 0;
-      await this._localApi.setState();
-    } else {
-      await this.cloudSet({ [CLOUD.DISPLAY]: on ? 1 : 0 });
-    }
+    return this._send(
+      () => { const a = this._localApi; a.state.display = on ? 1 : 0; return a.setState(); },
+      () => this.cloudSet({ [CLOUD.DISPLAY]: on ? 1 : 0 }),
+    );
   }
 
   async cloudSet(params) {
     await this._cloudApi.setDeviceParams(this._cloudDevice, params);
+  }
+
+  // ── Cleanup ────────────────────────────────────────────────────
+  destroy() {
+    if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null; }
+    if (this.deviceApi?.localApi?.disconnect) {
+      this.deviceApi.localApi.disconnect().catch(() => {});
+    }
   }
 }
 

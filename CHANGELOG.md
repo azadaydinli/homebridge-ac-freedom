@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.3.2
+
+- **Fix AUTO mode byte overflow** — local protocol uses 3-bit mode field; AUTO is now correctly encoded as 0 (not 8, which silently truncated to 0 in the wrong byte position)
+- **Fix comfwind local polling** — Comfortable Wind state now read from local Broadlink state
+- **Fix fan speed default** — initial `AcState.fanSpeed` corrected from 5 to 0 (AUTO)
+- **Fix unhandled Promise rejection** — `discoverDevices()` now has `.catch()` to avoid Node.js ≥18 crash on cloud login failure
+- **Fix timer and socket leak** — accessories now expose `destroy()` (clears poll interval + closes UDP socket); platform calls it before recreating accessories
+- **Refactor send functions** — unified `_send(localFn, cloudFn)` helper replaces repeated if/else branches in all 8 send methods
+- **Fix config.schema.json layout** — `showFan` was incorrectly nested inside the presets fieldset
+- **Add peerDependencies** to package.json
+- **i18n cleanup** — removed 26 unused keys from all 14 language files; added `fetch`, `cloudDevices`, `localDevices` keys
+- **Fix tr.json typo** — "düyməsi" (Azerbaijani) corrected to "düğmesi" (Turkish)
+
 ## 2.3.1
 
 - **Config UI overhaul** — complete redesign of the custom Homebridge UI

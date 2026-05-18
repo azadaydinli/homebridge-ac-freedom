@@ -25,16 +25,17 @@ const PLATFORM_NAME = 'AcFreedom';
 
 class AcFreedomPlatform {
   constructor(log, config, api) {
-    this.log    = log;
-    this.config = config || {};
-    this.api    = api;
+    this.log       = log;
+    this.config    = config || {};
+    this.api       = api;
     this.accessories = new Map();
+    this.instances   = new Map(); // uuid → AcFreedomAccessory
 
     if (!api || !config) return;
 
     this.api.on('didFinishLaunching', () => {
       this.log.info('AC Freedom platform loaded');
-      this.discoverDevices();
+      this.discoverDevices().catch(err => this.log.error('Fatal: %s', err.message));
     });
   }
 
@@ -108,15 +109,20 @@ class AcFreedomPlatform {
 
     if (!deviceApi) return;
 
+    // Destroy any existing instance to clear its poll timer and socket
+    this.instances.get(uuid)?.destroy();
+
     const existingAccessory = this.accessories.get(uuid);
     if (existingAccessory) {
       this.log.info('Updating existing accessory: %s', deviceConfig.name);
-      new AcFreedomAccessory(this, existingAccessory, deviceConfig, deviceApi);
+      const instance = new AcFreedomAccessory(this, existingAccessory, deviceConfig, deviceApi);
+      this.instances.set(uuid, instance);
       this.api.updatePlatformAccessories([existingAccessory]);
     } else {
       this.log.info('Adding new accessory: %s', deviceConfig.name);
       const accessory = new this.api.platformAccessory(deviceConfig.name, uuid);
-      new AcFreedomAccessory(this, accessory, deviceConfig, deviceApi);
+      const instance = new AcFreedomAccessory(this, accessory, deviceConfig, deviceApi);
+      this.instances.set(uuid, instance);
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       this.accessories.set(uuid, accessory);
     }

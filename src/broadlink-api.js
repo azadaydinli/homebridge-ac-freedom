@@ -86,7 +86,7 @@ class AcState {
     this.power = 0;
     this.mode = 0;
     this.temperature = 24;
-    this.fanSpeed = 5; // Auto
+    this.fanSpeed = 0;
     this.verticalFixation = 7;
     this.horizontalFixation = 7;
     this.mute = 0;
@@ -94,6 +94,7 @@ class AcState {
     this.sleep = 0;
     this.health = 0;
     this.clean = 0;
+    this.comfwind = 0;
     this.display = 1;
     this.mildew = 0;
     this.ambientTemp = 0;
@@ -324,7 +325,7 @@ class BroadlinkAcApi {
     cmd[12] = (tempHalf << 7) | 0x0F;
     cmd[13] = (this.state.fanSpeed & 0x07) << 5;
     cmd[14] = ((this.state.mute & 1) << 7) | ((this.state.turbo & 1) << 6);
-    cmd[15] = ((this.state.mode & 0x0F) << 5) | ((this.state.sleep & 1) << 2);
+    cmd[15] = ((this.state.mode & 0x07) << 5) | ((this.state.sleep & 1) << 2);
     cmd[16] = 0x00;
     cmd[17] = 0x00;
     cmd[18] = ((this.state.power & 1) << 5) | ((this.state.clean & 1) << 2) | ((this.state.health & 1) << 1);

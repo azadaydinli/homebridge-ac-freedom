@@ -159,12 +159,12 @@
                 { "key": "devices[].local.mac" }
               ]
             },
+            { "key": "devices[].showFan" },
             {
               "key": "devices[].presets",
               "type": "fieldset",
               "title": "Features",
               "items": [
-                { "key": "devices[].showFan" },
                 { "key": "devices[].presets.sleep" },
                 { "key": "devices[].presets.health" },
                 { "key": "devices[].presets.eco" },
