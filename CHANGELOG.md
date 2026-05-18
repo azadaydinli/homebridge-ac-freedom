@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.3.4
+
+- **UI: badge colors** — Cloud (teal), Hybrid (green), Local (yellow) — clearly distinct from each other
+- **UI: card colors** — all device cards now use the same neutral color regardless of connection mode
+- **UI: Local device numbering** — Local devices now always start from Local #1, independent of cloud device count
+- **UI: Poll Interval label** — removed "(seconds)" from the label; dropdown options now show "5 seconds", "10 seconds", etc.
+- **UI: English only** — removed all 14 language files; strings are now embedded directly in the UI (no i18n fetch on load)
+
 ## 2.3.3
 
 - **Hybrid offline startup** — if cloud is unavailable at Homebridge startup and the device has a local IP + MAC configured, the device now starts in local-only mode instead of failing. Full hybrid mode resumes automatically on the next restart when internet is available.

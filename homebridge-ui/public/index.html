@@ -6,9 +6,9 @@
     --hybrid:        #16a34a;
     --hybrid-light:  rgba(22,163,74,0.08);
     --hybrid-border: rgba(22,163,74,0.22);
-    --cloud-badge:        #dc2626;
-    --cloud-badge-light:  rgba(220,38,38,0.08);
-    --cloud-badge-border: rgba(220,38,38,0.28);
+    --cloud-badge:        #0095c8;
+    --cloud-badge-light:  rgba(0,149,200,0.08);
+    --cloud-badge-border: rgba(0,149,200,0.28);
     --local:         #a16207;
     --local-light:   rgba(161,98,7,0.08);
     --local-border:  rgba(161,98,7,0.25);
@@ -28,9 +28,9 @@
       --hybrid:        #4ade80;
       --hybrid-light:  rgba(74,222,128,0.08);
       --hybrid-border: rgba(74,222,128,0.22);
-      --cloud-badge:        #f87171;
-      --cloud-badge-light:  rgba(248,113,113,0.08);
-      --cloud-badge-border: rgba(248,113,113,0.28);
+      --cloud-badge:        #00b4d8;
+      --cloud-badge-light:  rgba(0,180,216,0.08);
+      --cloud-badge-border: rgba(0,180,216,0.26);
       --local:         #facc15;
       --local-light:   rgba(250,204,21,0.08);
       --local-border:  rgba(250,204,21,0.22);
@@ -224,7 +224,7 @@
     fan: 'Fan',                  sleep: 'Sleep',            display: 'Display',
     health: 'Health',            clean: 'Clean',            eco: 'Eco',
     comfWind: 'Comf. Wind',
-    tempStep: 'Temperature Step', pollInterval: 'Poll Interval (seconds)',
+    tempStep: 'Temperature Step', pollInterval: 'Poll Interval',
     addDevice: 'Add Device',     remove: 'Remove',
     hybrid: 'Hybrid',            cloudCredentials: 'Cloud Credentials',
     fetching: 'Fetching…',       devicesFound: 'devices found',
@@ -292,11 +292,11 @@
           <div class="fg" style="margin-bottom:0">
             <label>${t.pollInterval||'Poll Interval'}</label>
             <select class="d-field" data-i="${i}" data-f="pollInterval">
-              <option value="5"  ${poll==5 ?'selected':''}>5 s</option>
-              <option value="10" ${poll==10?'selected':''}>10 s</option>
-              <option value="20" ${poll==20?'selected':''}>20 s</option>
-              <option value="30" ${poll==30?'selected':''}>30 s</option>
-              <option value="60" ${poll==60?'selected':''}>60 s</option>
+              <option value="5"  ${poll==5 ?'selected':''}>5 seconds</option>
+              <option value="10" ${poll==10?'selected':''}>10 seconds</option>
+              <option value="20" ${poll==20?'selected':''}>20 seconds</option>
+              <option value="30" ${poll==30?'selected':''}>30 seconds</option>
+              <option value="60" ${poll==60?'selected':''}>60 seconds</option>
             </select>
           </div>
         </div>
@@ -378,9 +378,9 @@
   }
 
   /* ── Render local-only device card ───────────────────────── */
-  function renderLocalDevice(d, i) {
+  function renderLocalDevice(d, i, li) {
     const isOpen = expanded.has(i);
-    const name   = d.name || `Local #${i + 1}`;
+    const name   = d.name || `Local #${li + 1}`;
     const local  = d.local || {};
     const step   = d.tempStep !== undefined ? d.tempStep : 0.5;
     const poll   = d.pollInterval || 30;
@@ -393,7 +393,7 @@
             <span class="dev-name">${esc(name)}</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:8px">
-            <span class="conn-badge cloud">${t.local||'Local'}</span>
+            <span class="conn-badge local">${t.local||'Local'}</span>
             <button class="btn btn-danger btn-sm btn-remove" data-i="${i}">${t.remove||'Remove'}</button>
           </div>
         </div>
@@ -434,7 +434,8 @@
       .filter(({ d }) => d.connection !== 'local');
     const localDevs = config.devices
       .map((d, i) => ({ d, i }))
-      .filter(({ d }) => d.connection === 'local');
+      .filter(({ d }) => d.connection === 'local')
+      .map((item, li) => ({ ...item, li }));
 
     app.innerHTML = `
       <!-- Cloud Credentials -->
@@ -489,7 +490,7 @@
         ${t.localDevices||'Local Devices'}
       </div>
       <div id="local-device-list">
-        ${localDevs.map(({ d, i }) => renderLocalDevice(d, i)).join('')}
+        ${localDevs.map(({ d, i, li }) => renderLocalDevice(d, i, li)).join('')}
       </div>
       <div class="fieldset" style="margin-top:10px">
         <button class="btn btn-primary" id="btn-add-local"
