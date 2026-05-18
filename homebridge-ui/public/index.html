@@ -1,0 +1,448 @@
+<style>
+  :root {
+    --accent:        #0095c8;
+    --accent-light:  rgba(0,149,200,0.12);
+    --accent-border: rgba(0,149,200,0.30);
+    --cloud:         #2563eb;
+    --cloud-light:   rgba(37,99,235,0.07);
+    --cloud-border:  rgba(37,99,235,0.22);
+    --local:         #16a34a;
+    --local-light:   rgba(22,163,74,0.07);
+    --local-border:  rgba(22,163,74,0.22);
+    --text:          #1a1a2e;
+    --text-muted:    #6b7280;
+    --border:        #e5e7eb;
+    --card-bg:       #f9fafb;
+    --input-bg:      #ffffff;
+    --bg:            #ffffff;
+    --danger:        #dc2626;
+    --danger-hover:  #b91c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent:        #00b4d8;
+      --accent-light:  rgba(0,180,216,0.10);
+      --accent-border: rgba(0,180,216,0.28);
+      --cloud:         #60a5fa;
+      --cloud-light:   rgba(96,165,250,0.08);
+      --cloud-border:  rgba(96,165,250,0.22);
+      --local:         #4ade80;
+      --local-light:   rgba(74,222,128,0.08);
+      --local-border:  rgba(74,222,128,0.22);
+      --text:          #e2e8f0;
+      --text-muted:    #94a3b8;
+      --border:        #334155;
+      --card-bg:       rgba(255,255,255,0.05);
+      --input-bg:      rgba(255,255,255,0.08);
+      --bg:            transparent;
+      --danger:        #f87171;
+      --danger-hover:  #ef4444;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px; color: var(--text); background: var(--bg) !important;
+  }
+
+  /* ── Form elements ── */
+  .fg { margin-bottom: 14px; }
+  label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: var(--text); }
+  .hint { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; line-height: 1.4; }
+  input[type="text"], input[type="number"], input[type="email"], input[type="password"], select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 13px; background: var(--input-bg);
+    color: var(--text); transition: border-color .15s;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  select option { background: var(--input-bg); color: var(--text); }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 7px 14px; border: none; border-radius: 6px; cursor: pointer;
+    font-size: 12px; font-weight: 600; transition: opacity .15s, background .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn-primary  { background: var(--accent); color: #fff; }
+  .btn-outline  { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-outline:hover { background: var(--accent); color: #fff; opacity: 1; }
+  .btn-danger   { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; opacity: 1; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+  /* ── Device card ── */
+  .device-card {
+    border: 1.5px solid var(--accent-border); border-radius: 12px;
+    margin-bottom: 16px; background: var(--accent-light); overflow: hidden;
+  }
+  .device-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 13px 18px; cursor: pointer; user-select: none;
+  }
+  .device-header:hover { opacity: .88; }
+  .device-header-left { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
+  .chevron {
+    font-size: 11px; color: var(--text-muted); transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .chevron.open { transform: rotate(90deg); }
+  .dev-name { font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conn-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: .5px;
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .conn-badge.cloud { background: var(--cloud-light); color: var(--cloud); border: 1px solid var(--cloud-border); }
+  .conn-badge.local { background: var(--local-light); color: var(--local); border: 1px solid var(--local-border); }
+  .dev-meta { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+  .device-body { padding: 4px 18px 18px; }
+  .device-body.collapsed { display: none; }
+
+  /* ── Grid layouts ── */
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* ── Section divider ── */
+  .section-hd {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .8px; color: var(--text-muted);
+    margin: 18px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Connection toggle ── */
+  .conn-toggle { display: flex; gap: 8px; }
+  .conn-btn {
+    flex: 1; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: transparent; cursor: pointer; text-align: center;
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    transition: all .15s;
+  }
+  .conn-btn .icon { font-size: 16px; display: block; margin-bottom: 2px; }
+  .conn-btn.active-cloud {
+    border-color: var(--cloud); background: var(--cloud-light); color: var(--cloud);
+  }
+  .conn-btn.active-local {
+    border-color: var(--local); background: var(--local-light); color: var(--local);
+  }
+
+  /* ── Fieldset ── */
+  .fieldset {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; margin-top: 4px;
+  }
+
+  /* ── Toggle grid (checkboxes) ── */
+  .toggle-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;
+  }
+  .toggle-item {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--card-bg);
+    cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text);
+    transition: border-color .15s, background .15s;
+  }
+  .toggle-item:hover { border-color: var(--accent); }
+  .toggle-item input[type="checkbox"] {
+    width: 15px; height: 15px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer;
+  }
+  .toggle-item.checked {
+    border-color: var(--accent-border); background: var(--accent-light);
+  }
+
+  /* ── Actions row ── */
+  .actions { margin-top: 18px; display: flex; gap: 10px; }
+</style>
+
+<div id="app"></div>
+
+<script>
+(async () => {
+  let config = {};
+  try {
+    const cfgs = await homebridge.getPluginConfig();
+    config = cfgs[0] || {};
+  } catch {}
+  if (!config.devices) config.devices = [];
+
+  const expanded = new Set();
+  const app = document.getElementById('app');
+
+  /* ── Helpers ── */
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = String(s ?? '');
+    return d.innerHTML.replace(/"/g, '&quot;');
+  }
+  function bool(v, def = true) { return v === undefined ? def : !!v; }
+  async function save() { await homebridge.updatePluginConfig([config]); }
+
+  /* ── Render ── */
+  function render() {
+    app.innerHTML = `
+      <div class="section-hd" style="margin-top:4px">Devices</div>
+      <div id="device-list">
+        ${config.devices.map((d, i) => renderDevice(d, i)).join('')}
+      </div>
+      <div class="actions">
+        <button class="btn btn-outline" id="btn-add">+ Add Device</button>
+      </div>
+    `;
+    bindEvents();
+  }
+
+  function renderDevice(d, i) {
+    const isOpen   = expanded.has(i);
+    const name     = d.name || `Device #${i + 1}`;
+    const conn     = d.connection || 'cloud';
+    const isCloud  = conn === 'cloud';
+    const cloud    = d.cloud  || {};
+    const local    = d.local  || {};
+    const presets  = d.presets || {};
+    const poll     = d.pollInterval || 30;
+    const step     = d.tempStep !== undefined ? d.tempStep : 0.5;
+
+    const features = [
+      { key: 'showFan',      label: '🌀 Fan',             val: bool(d.showFan) },
+      { key: 'sleep',        label: '😴 Sleep',           val: bool(presets.sleep),  preset: true },
+      { key: 'health',       label: '🌿 Health',          val: bool(presets.health), preset: true },
+      { key: 'eco',          label: '🍃 Eco',             val: bool(presets.eco),    preset: true },
+      { key: 'clean',        label: '✨ Clean',           val: bool(presets.clean),  preset: true },
+      { key: 'showComfWind', label: '💨 Comf. Wind',      val: bool(d.showComfWind) },
+      { key: 'showDisplay',  label: '💡 Display',         val: bool(d.showDisplay) },
+    ];
+
+    return `
+      <div class="device-card" id="dev-card-${i}">
+        <div class="device-header device-toggle" data-i="${i}">
+          <div class="device-header-left">
+            <span class="chevron ${isOpen ? 'open' : ''}">&#9654;</span>
+            <span class="dev-name">${esc(name)}</span>
+            <span class="conn-badge ${conn}">${isCloud ? 'Cloud' : 'Local'}</span>
+            ${!isOpen ? `<span class="dev-meta">${poll}s poll · ${step}°C step</span>` : ''}
+          </div>
+          <div style="flex-shrink:0; margin-left:8px">
+            <button class="btn btn-danger btn-sm btn-remove" data-i="${i}">Remove</button>
+          </div>
+        </div>
+
+        <div class="device-body ${isOpen ? '' : 'collapsed'}">
+
+          <!-- Name + Connection -->
+          <div class="row-2" style="align-items:end">
+            <div class="fg">
+              <label>Device Name</label>
+              <input type="text" class="d-field" data-i="${i}" data-f="name" value="${esc(d.name || '')}">
+            </div>
+            <div class="fg">
+              <label>Connection</label>
+              <div class="conn-toggle">
+                <button class="conn-btn ${isCloud ? 'active-cloud' : ''} conn-pick" data-i="${i}" data-v="cloud">
+                  <span class="icon">☁️</span>Cloud
+                </button>
+                <button class="conn-btn ${!isCloud ? 'active-local' : ''} conn-pick" data-i="${i}" data-v="local">
+                  <span class="icon">📡</span>Local
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cloud settings -->
+          <div id="cloud-sec-${i}" style="${isCloud ? '' : 'display:none'}">
+            <div class="section-hd">☁️ Cloud Settings</div>
+            <div class="fieldset">
+              <div class="row-2">
+                <div class="fg">
+                  <label>Email</label>
+                  <div class="hint">AC Freedom app account email</div>
+                  <input type="email" class="c-field" data-i="${i}" data-f="email" value="${esc(cloud.email || '')}">
+                </div>
+                <div class="fg">
+                  <label>Password</label>
+                  <div class="hint">AC Freedom app password</div>
+                  <input type="password" class="c-field" data-i="${i}" data-f="password" value="${esc(cloud.password || '')}">
+                </div>
+              </div>
+              <div class="row-2">
+                <div class="fg" style="margin-bottom:0">
+                  <label>Region</label>
+                  <div class="hint">Server region for your account</div>
+                  <select class="c-field" data-i="${i}" data-f="region">
+                    ${['eu','usa','cn','rus'].map(r =>
+                      `<option value="${r}" ${(cloud.region||'eu')===r?'selected':''}>${
+                        {eu:'Europe',usa:'USA',cn:'China',rus:'Russia'}[r]
+                      }</option>`
+                    ).join('')}
+                  </select>
+                </div>
+                <div class="fg" style="margin-bottom:0">
+                  <label>Device ID <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+                  <div class="hint">Leave empty to auto-detect first device</div>
+                  <input type="text" class="c-field" data-i="${i}" data-f="deviceId" value="${esc(cloud.deviceId || '')}" placeholder="auto-detect">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local settings -->
+          <div id="local-sec-${i}" style="${!isCloud ? '' : 'display:none'}">
+            <div class="section-hd">📡 Local Settings</div>
+            <div class="fieldset">
+              <div class="row-2">
+                <div class="fg" style="margin-bottom:0">
+                  <label>IP Address</label>
+                  <div class="hint">AC unit's local IP (e.g. 192.168.1.100)</div>
+                  <input type="text" class="l-field" data-i="${i}" data-f="ip" value="${esc(local.ip || '')}" placeholder="192.168.1.100">
+                </div>
+                <div class="fg" style="margin-bottom:0">
+                  <label>MAC Address</label>
+                  <div class="hint">Format: AA:BB:CC:DD:EE:FF</div>
+                  <input type="text" class="l-field" data-i="${i}" data-f="mac" value="${esc(local.mac || '')}" placeholder="AA:BB:CC:DD:EE:FF">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Features -->
+          <div class="section-hd">Features</div>
+          <div class="toggle-grid">
+            ${features.map(f => `
+              <label class="toggle-item ${f.val ? 'checked' : ''}">
+                <input type="checkbox" class="feat-cb" data-i="${i}" data-k="${f.key}" data-preset="${f.preset||false}" ${f.val ? 'checked' : ''}>
+                ${f.label}
+              </label>
+            `).join('')}
+          </div>
+
+          <!-- Settings -->
+          <div class="section-hd">Settings</div>
+          <div class="row-2">
+            <div class="fg" style="margin-bottom:0">
+              <label>Temperature Step</label>
+              <div class="hint">Minimum temperature adjustment increment</div>
+              <select class="d-field" data-i="${i}" data-f="tempStep">
+                <option value="0.5" ${step==0.5?'selected':''}>0.5 °C</option>
+                <option value="1"   ${step==1  ?'selected':''}>1.0 °C</option>
+              </select>
+            </div>
+            <div class="fg" style="margin-bottom:0">
+              <label>Poll Interval (seconds)</label>
+              <div class="hint">How often to fetch the AC state (5–300)</div>
+              <input type="number" class="d-field" data-i="${i}" data-f="pollInterval" min="5" max="300" value="${poll}">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
+  }
+
+  /* ── Event binding ── */
+  function bindEvents() {
+    /* Collapse toggle */
+    document.querySelectorAll('.device-toggle').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('.btn, input, select')) return;
+        const i = +el.dataset.i;
+        expanded.has(i) ? expanded.delete(i) : expanded.add(i);
+        render();
+      });
+    });
+
+    /* Add device */
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const i = config.devices.length;
+      config.devices.push({
+        name: '', connection: 'cloud',
+        cloud: { email: '', password: '', region: 'eu', deviceId: '' },
+        local: { ip: '', mac: '' },
+        presets: { sleep: true, health: true, eco: true, clean: true },
+        showFan: true, showComfWind: true, showDisplay: true,
+        tempStep: 0.5, pollInterval: 30,
+      });
+      expanded.add(i);
+      render(); save();
+    });
+
+    /* Remove device */
+    document.querySelectorAll('.btn-remove').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const i = +btn.dataset.i;
+        config.devices.splice(i, 1);
+        const newExp = new Set();
+        expanded.forEach(v => { if (v < i) newExp.add(v); else if (v > i) newExp.add(v - 1); });
+        expanded.clear(); newExp.forEach(v => expanded.add(v));
+        render(); save();
+      });
+    });
+
+    /* Connection toggle */
+    document.querySelectorAll('.conn-pick').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const i = +btn.dataset.i;
+        config.devices[i].connection = btn.dataset.v;
+        render(); save();
+      });
+    });
+
+    /* Device-level string/number fields */
+    document.querySelectorAll('.d-field').forEach(el => {
+      el.addEventListener('change', () => {
+        const i = +el.dataset.i, f = el.dataset.f;
+        config.devices[i][f] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+        save();
+      });
+      el.addEventListener('input', () => {
+        /* Live-update header name without full re-render */
+        if (el.dataset.f === 'name') {
+          const hdr = document.querySelector(`#dev-card-${el.dataset.i} .dev-name`);
+          if (hdr) hdr.textContent = el.value || `Device #${+el.dataset.i + 1}`;
+        }
+      });
+    });
+
+    /* Cloud fields */
+    document.querySelectorAll('.c-field').forEach(el => {
+      el.addEventListener('change', () => {
+        const i = +el.dataset.i, f = el.dataset.f;
+        if (!config.devices[i].cloud) config.devices[i].cloud = {};
+        config.devices[i].cloud[f] = el.value;
+        save();
+      });
+    });
+
+    /* Local fields */
+    document.querySelectorAll('.l-field').forEach(el => {
+      el.addEventListener('change', () => {
+        const i = +el.dataset.i, f = el.dataset.f;
+        if (!config.devices[i].local) config.devices[i].local = {};
+        config.devices[i].local[f] = el.value;
+        save();
+      });
+    });
+
+    /* Feature checkboxes */
+    document.querySelectorAll('.feat-cb').forEach(cb => {
+      /* Style parent on load */
+      cb.closest('.toggle-item').classList.toggle('checked', cb.checked);
+      cb.addEventListener('change', () => {
+        const i = +cb.dataset.i, k = cb.dataset.k, isPreset = cb.dataset.preset === 'true';
+        if (isPreset) {
+          if (!config.devices[i].presets) config.devices[i].presets = {};
+          config.devices[i].presets[k] = cb.checked;
+        } else {
+          config.devices[i][k] = cb.checked;
+        }
+        cb.closest('.toggle-item').classList.toggle('checked', cb.checked);
+        save();
+      });
+    });
+  }
+
+  render();
+})();
+</script>
