@@ -6,7 +6,7 @@
 
 # Homebridge AC Freedom
 
-A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air conditioners** via **Apple HomeKit**. Works with any AC that uses the **AC Freedom** app. Supports **Cloud** (AUX API) and **Local** (Broadlink UDP) connections — no extra hub required.
+A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air conditioners** via **Apple HomeKit**. Works with any AC that uses the **AC Freedom** app. Supports **Hybrid** (AUX Cloud + optional local Broadlink UDP) and **Local** (Broadlink UDP only) connection modes — no extra hub required.
 
 [![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat&logoColor=%23FFFFFF&logo=homebridge)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm](https://img.shields.io/npm/v/homebridge-ac-freedom)](https://www.npmjs.com/package/homebridge-ac-freedom)
@@ -31,10 +31,11 @@ A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air con
   - Self Clean
   - Comfortable Wind
 - **Display** switch — LED display on/off
-- **Auto-reset** — fan and sleep reset to default when AC turns on or off
-- **Cloud** — AUX Cloud API via AC Freedom app credentials
-- **Local** — Direct Broadlink UDP, no internet required
+- **Auto-reset** — fan and sleep reset to default when AC turns on/off or mode changes
+- **Hybrid** — single cloud login at platform level; optional IP + MAC per device for local Broadlink UDP (local preferred, cloud fallback)
+- **Local** — Direct Broadlink UDP only, no internet required
 - **Multi-device** — configure as many ACs as needed
+- **Custom config UI** — built-in Homebridge UI with Fetch Devices button
 - Homebridge v1 & v2 compatible
 
 ---
@@ -56,7 +57,7 @@ Any air conditioner compatible with the **AC Freedom** app is supported:
 - [Homebridge](https://homebridge.io) v1.6.0 or later (v2 supported)
 - Node.js v18.0.0 or later
 - An AUX-compatible AC with Wi-Fi (Broadlink module)
-- **Cloud:** AC Freedom app account (email registration)
+- **Hybrid:** AC Freedom app account (email registration)
 - **Local:** AC's IP and MAC address on your local network
 
 ---
@@ -68,6 +69,7 @@ Any air conditioner compatible with the **AC Freedom** app is supported:
 1. Open the Homebridge UI → **Plugins**
 2. Search for `homebridge-ac-freedom`
 3. Click **Install**
+4. Open plugin settings, enter your cloud credentials and press **Fetch** to auto-discover your devices
 
 **Via terminal:**
 
@@ -77,9 +79,25 @@ npm install -g homebridge-ac-freedom
 
 ---
 
+## Connection Modes
+
+### Hybrid (recommended)
+
+Cloud credentials are configured **once at platform level**. All your devices are auto-discovered via the cloud. Optionally add an IP + MAC per device for direct local Broadlink UDP control — local is used when available and automatically falls back to cloud.
+
+### Local Only
+
+Direct Broadlink UDP communication only. No cloud account needed, but Homebridge must be on the same network as the AC.
+
+---
+
 ## Configuration
 
-### Cloud Mode
+The easiest way to configure is through the **Homebridge UI** — enter your credentials and press **Fetch** to auto-populate your devices.
+
+For manual JSON configuration:
+
+### Hybrid Mode
 
 ```json
 {
@@ -87,14 +105,44 @@ npm install -g homebridge-ac-freedom
     {
       "platform": "AcFreedom",
       "name": "AC Freedom",
+      "cloud": {
+        "email": "your-email@example.com",
+        "password": "your-password",
+        "region": "eu"
+      },
       "devices": [
         {
           "name": "Living Room AC",
-          "connection": "cloud",
-          "cloud": {
-            "email": "your-email@example.com",
-            "password": "your-password",
-            "region": "eu"
+          "connection": "hybrid",
+          "endpointId": "your-device-endpoint-id"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Hybrid Mode with Local Override
+
+```json
+{
+  "platforms": [
+    {
+      "platform": "AcFreedom",
+      "name": "AC Freedom",
+      "cloud": {
+        "email": "your-email@example.com",
+        "password": "your-password",
+        "region": "eu"
+      },
+      "devices": [
+        {
+          "name": "Living Room AC",
+          "connection": "hybrid",
+          "endpointId": "your-device-endpoint-id",
+          "local": {
+            "ip": "192.168.1.100",
+            "mac": "AA:BB:CC:DD:EE:FF"
           }
         }
       ]
@@ -103,7 +151,7 @@ npm install -g homebridge-ac-freedom
 }
 ```
 
-### Local Mode
+### Local Only Mode
 
 ```json
 {
@@ -130,42 +178,46 @@ npm install -g homebridge-ac-freedom
 
 ## Configuration Options
 
-### Device Options (all modes)
+### Platform-level Cloud Credentials (`cloud` object)
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Device name in HomeKit |
-| `connection` | string | Yes | `"cloud"` | Connection mode: `cloud` or `local` |
-| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
-| `tempStep` | number | No | `0.5` | Temperature step: `0.5` or `1` |
-
-### Cloud Settings (`cloud` object)
+Required for Hybrid mode. Configured once, shared by all hybrid devices.
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `email` | string | Yes | — | AC Freedom app email |
 | `password` | string | Yes | — | AC Freedom app password |
 | `region` | string | No | `"eu"` | Server region: `eu`, `usa`, `cn`, `rus` |
-| `deviceId` | string | No | — | Specific device ID (leave empty to auto-detect) |
 
-### Local Settings (`local` object)
+### Device Options
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
-| `ip` | string | Yes | — | AC unit's local IP address |
-| `mac` | string | Yes | — | AC unit's MAC address (`AA:BB:CC:DD:EE:FF`) |
+| `name` | string | Yes | — | Device name in HomeKit |
+| `connection` | string | No | `"hybrid"` | `"hybrid"` or `"local"` |
+| `endpointId` | string | No | — | Cloud device ID (auto-detected if empty) |
+| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
+| `tempStep` | number | No | `0.5` | Temperature step: `0.5` or `1` |
+
+### Local Settings (`local` object, per device)
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `ip` | string | Yes | AC unit's local IP address |
+| `mac` | string | Yes | AC unit's MAC address (`AA:BB:CC:DD:EE:FF`) |
 
 ### Feature Switches
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `presets.sleep` | boolean | `true` | Sleep Mode switch |
-| `presets.health` | boolean | `true` | Health / Ionizer switch |
-| `presets.eco` | boolean | `true` | Eco / Mildew Prevention switch |
-| `presets.clean` | boolean | `true` | Self Clean switch |
-| `showComfWind` | boolean | `true` | Comfortable Wind switch |
-| `showDisplay` | boolean | `true` | Display (LED) switch |
 | `showFan` | boolean | `true` | Fan speed slider |
+| `presets.sleep` | boolean | `true` | Sleep Mode switch |
+| `presets.health` | boolean | `false` | Health / Ionizer switch |
+| `presets.eco` | boolean | `false` | Eco / Mildew Prevention switch |
+| `presets.clean` | boolean | `false` | Self Clean switch |
+| `showComfWind` | boolean | `false` | Comfortable Wind switch |
+| `showDisplay` | boolean | `false` | Display (LED) switch |
+
+> **Tip:** For a clean HomeKit appearance, enable **Fan** and only one preset mode — **Sleep** is the recommended choice.
 
 ---
 
@@ -183,14 +235,15 @@ All linked services appear as tiles inside the climate card.
 
 ---
 
-## Cloud vs Local
+## Hybrid vs Local
 
-| | Cloud | Local |
+| | Hybrid | Local Only |
 |---|---|---|
-| Internet required | Yes | No |
-| Setup | Easy (email + password) | Moderate (IP + MAC) |
-| Response time | ~1–2 s | ~0.5 s |
+| Internet required | Yes (initial + polling) | No |
+| Setup | Easy — Fetch button auto-fills | Moderate (IP + MAC required) |
+| Response time | ~1–2 s (cloud) / ~0.5 s (local) | ~0.5 s |
 | Works remotely | Yes | No |
+| Local fallback | Yes (when IP + MAC configured) | — |
 
 ---
 
@@ -203,8 +256,8 @@ All linked services appear as tiles inside the climate card.
 - Logging into the AC Freedom app may invalidate the plugin session — restart Homebridge after using the app
 
 **Device not found**
-- Cloud: leave `deviceId` empty for auto-detect, or find it in Homebridge logs
-- Local: confirm the AC is on your Wi-Fi and the IP/MAC are correct
+- Leave `endpointId` empty for auto-detection (first discovered device is used)
+- Use the **Fetch** button in the Homebridge UI to discover and auto-fill your device IDs
 
 **"Server busy" errors**
 - These are transient and automatically suppressed
