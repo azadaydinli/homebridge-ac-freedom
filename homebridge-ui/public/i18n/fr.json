@@ -38,5 +38,16 @@
   "pollIntervalHint": "Fréquence de récupération de l'état du climatiseur (5–300)",
   "addDevice": "Ajouter un appareil",
   "remove": "Supprimer",
-  "featuresHint": "Pour un affichage HomeKit épuré, il est recommandé d'activer le Ventilateur et un seul mode prédéfini — Sommeil est le choix conseillé."
+  "featuresHint": "Pour un affichage HomeKit épuré, il est recommandé d'activer le Ventilateur et un seul mode prédéfini — Sommeil est le choix conseillé.",
+  "hybrid": "Hybride",
+  "localOnly": "Local uniquement",
+  "cloudCredentials": "Identifiants cloud",
+  "fetchDevices": "Récupérer les appareils",
+  "fetching": "Récupération...",
+  "devicesFound": "appareils trouvés",
+  "fetchFailed": "Échec de la récupération",
+  "endpointId": "ID de l'appareil",
+  "endpointIdHint": "Rempli automatiquement via « Récupérer les appareils ». Laisser vide pour utiliser le premier appareil détecté.",
+  "localOverride": "Connexion locale (optionnelle)",
+  "localOverrideHint": "Ajouter IP + MAC pour une connexion locale directe. Si disponible, la connexion locale est préférée."
 }

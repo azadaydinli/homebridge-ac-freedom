@@ -13,6 +13,26 @@
         "type": "string",
         "default": "AC Freedom"
       },
+      "cloud": {
+        "title": "Cloud Credentials",
+        "type": "object",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string",
+            "default": "eu",
+            "enum": ["eu", "usa", "cn", "rus"]
+          }
+        }
+      },
       "devices": {
         "title": "Devices",
         "type": "array",
@@ -28,31 +48,12 @@
             "connection": {
               "title": "Connection Mode",
               "type": "string",
-              "default": "cloud",
-              "enum": ["cloud", "local"]
+              "default": "hybrid",
+              "enum": ["hybrid", "local", "cloud"]
             },
-            "cloud": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "title": "Email",
-                  "type": "string"
-                },
-                "password": {
-                  "title": "Password",
-                  "type": "string"
-                },
-                "region": {
-                  "title": "Region",
-                  "type": "string",
-                  "default": "eu",
-                  "enum": ["eu", "usa", "cn", "rus"]
-                },
-                "deviceId": {
-                  "title": "Device ID (endpointId, leave empty for auto-detect)",
-                  "type": "string"
-                }
-              }
+            "endpointId": {
+              "title": "Device ID (endpointId, leave empty for auto-detect)",
+              "type": "string"
             },
             "local": {
               "type": "object",
@@ -70,10 +71,10 @@
             "presets": {
               "type": "object",
               "properties": {
-                "sleep": { "title": "Sleep Mode", "type": "boolean", "default": true },
-                "health": { "title": "Health / Ionizer", "type": "boolean", "default": true },
-                "eco": { "title": "Eco / Mildew Prevention", "type": "boolean", "default": true },
-                "clean": { "title": "Self Clean", "type": "boolean", "default": true }
+                "sleep":  { "title": "Sleep Mode",              "type": "boolean", "default": true },
+                "health": { "title": "Health / Ionizer",        "type": "boolean", "default": true },
+                "eco":    { "title": "Eco / Mildew Prevention", "type": "boolean", "default": true },
+                "clean":  { "title": "Self Clean",              "type": "boolean", "default": true }
               }
             },
             "showFan": {
@@ -112,6 +113,24 @@
   "layout": [
     { "key": "name" },
     {
+      "key": "cloud",
+      "type": "fieldset",
+      "title": "Cloud Credentials (for Hybrid mode)",
+      "items": [
+        { "key": "cloud.email" },
+        { "key": "cloud.password" },
+        {
+          "key": "cloud.region",
+          "titleMap": {
+            "eu":  "Europe",
+            "usa": "USA",
+            "cn":  "China",
+            "rus": "Russia"
+          }
+        }
+      ]
+    },
+    {
       "key": "devices",
       "type": "array",
       "buttonText": "Add Device",
@@ -126,35 +145,15 @@
             {
               "key": "devices[].connection",
               "titleMap": {
-                "cloud": "Cloud (AUX Cloud API)",
-                "local": "Local (Broadlink UDP)"
+                "hybrid": "Hybrid (Cloud + optional Local)",
+                "local":  "Local Only (Broadlink UDP)"
               }
             },
-            {
-              "key": "devices[].cloud",
-              "type": "fieldset",
-              "title": "Cloud Settings",
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'cloud';" },
-              "items": [
-                { "key": "devices[].cloud.email" },
-                { "key": "devices[].cloud.password" },
-                {
-                  "key": "devices[].cloud.region",
-                  "titleMap": {
-                    "eu": "Europe",
-                    "usa": "USA",
-                    "cn": "China",
-                    "rus": "Russia"
-                  }
-                },
-                { "key": "devices[].cloud.deviceId" }
-              ]
-            },
+            { "key": "devices[].endpointId" },
             {
               "key": "devices[].local",
               "type": "fieldset",
               "title": "Local Settings",
-              "condition": { "functionBody": "return model.devices[arrayIndices[0]].connection === 'local';" },
               "items": [
                 { "key": "devices[].local.ip" },
                 { "key": "devices[].local.mac" }
@@ -163,7 +162,7 @@
             {
               "key": "devices[].presets",
               "type": "fieldset",
-              "title": "Preset Modes",
+              "title": "Features",
               "items": [
                 { "key": "devices[].showFan" },
                 { "key": "devices[].presets.sleep" },
@@ -178,9 +177,10 @@
               "key": "devices[].tempStep",
               "titleMap": {
                 "0.5": "0.5 °C",
-                "1": "1 °C"
+                "1":   "1 °C"
               }
-            }
+            },
+            { "key": "devices[].pollInterval" }
           ]
         }
       ]

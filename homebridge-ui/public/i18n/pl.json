@@ -38,5 +38,16 @@
   "pollIntervalHint": "Jak często pobierać stan klimatyzatora (5–300)",
   "addDevice": "Dodaj urządzenie",
   "remove": "Usuń",
-  "featuresHint": "Dla przejrzystego wyglądu HomeKit zaleca się włączenie tylko Wentylatora i jednego trybu predefiniowanego — rekomendowany jest Sen."
+  "featuresHint": "Dla przejrzystego wyglądu HomeKit zaleca się włączenie tylko Wentylatora i jednego trybu predefiniowanego — rekomendowany jest Sen.",
+  "hybrid": "Hybrydowy",
+  "localOnly": "Tylko lokalny",
+  "cloudCredentials": "Dane logowania do chmury",
+  "fetchDevices": "Pobierz urządzenia",
+  "fetching": "Pobieranie...",
+  "devicesFound": "urządzeń znaleziono",
+  "fetchFailed": "Pobieranie nie powiodło się",
+  "endpointId": "ID urządzenia",
+  "endpointIdHint": "Wypełniany automatycznie przez «Pobierz urządzenia». Zostaw puste, aby użyć pierwszego wykrytego urządzenia.",
+  "localOverride": "Połączenie lokalne (opcjonalne)",
+  "localOverrideHint": "Dodaj IP + MAC dla bezpośredniego połączenia lokalnego. Jeśli dostępne, połączenie lokalne jest preferowane."
 }

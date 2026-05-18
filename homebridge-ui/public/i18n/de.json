@@ -38,5 +38,16 @@
   "pollIntervalHint": "Wie oft der AC-Status abgerufen wird (5–300)",
   "addDevice": "Gerät hinzufügen",
   "remove": "Entfernen",
-  "featuresHint": "Für ein übersichtliches HomeKit-Layout wird empfohlen, nur den Lüfter und einen einzigen Voreinstellungsmodus zu aktivieren — empfohlen wird Schlaf."
+  "featuresHint": "Für ein übersichtliches HomeKit-Layout wird empfohlen, nur den Lüfter und einen einzigen Voreinstellungsmodus zu aktivieren — empfohlen wird Schlaf.",
+  "hybrid": "Hybrid",
+  "localOnly": "Nur Lokal",
+  "cloudCredentials": "Cloud-Anmeldeinformationen",
+  "fetchDevices": "Geräte abrufen",
+  "fetching": "Wird abgerufen...",
+  "devicesFound": "Geräte gefunden",
+  "fetchFailed": "Abruf fehlgeschlagen",
+  "endpointId": "Geräte-ID",
+  "endpointIdHint": "Wird über „Geräte abrufen\" automatisch befüllt. Leer lassen, um das erste erkannte Gerät zu verwenden.",
+  "localOverride": "Lokale Verbindung (optional)",
+  "localOverrideHint": "IP + MAC für direkte lokale Verbindung hinzufügen. Bei Verfügbarkeit wird die lokale Verbindung bevorzugt."
 }

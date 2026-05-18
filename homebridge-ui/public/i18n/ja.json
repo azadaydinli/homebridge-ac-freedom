@@ -38,5 +38,16 @@
   "pollIntervalHint": "エアコンの状態を取得する頻度（5〜300）",
   "addDevice": "デバイスを追加",
   "remove": "削除",
-  "featuresHint": "すっきりしたHomeKit表示のために、ファンと1つのプリセットモードのみ有効にすることをお勧めします — スリープが推奨です。"
+  "featuresHint": "すっきりしたHomeKit表示のために、ファンと1つのプリセットモードのみ有効にすることをお勧めします — スリープが推奨です。",
+  "hybrid": "ハイブリッド",
+  "localOnly": "ローカルのみ",
+  "cloudCredentials": "クラウド認証情報",
+  "fetchDevices": "デバイスを取得",
+  "fetching": "取得中...",
+  "devicesFound": "台のデバイスが見つかりました",
+  "fetchFailed": "取得に失敗しました",
+  "endpointId": "デバイスID",
+  "endpointIdHint": "「デバイスを取得」で自動入力されます。空白のままにすると最初に検出されたデバイスが使用されます。",
+  "localOverride": "ローカル接続（任意）",
+  "localOverrideHint": "直接ローカル接続のためにIP + MACを追加してください。利用可能な場合、ローカル接続が優先されます。"
 }

@@ -4,66 +4,78 @@
  * Exposes a HeaterCooler service with linked Fanv2 and Switch services.
  * Fan speed, preset modes (sleep, health, eco, clean) and display toggle
  * appear as tiles inside the climate card in HomeKit.
+ *
+ * deviceApi shapes:
+ *   { type: 'hybrid', cloudApi, cloudDevice, localApi }   ← preferred
+ *   { type: 'local',  api }                               ← local-only
+ *   { type: 'cloud',  api, device }                       ← legacy (treated as hybrid)
  */
 
 'use strict';
 
 // Cloud API param keys
 const CLOUD = {
-  POWER: 'pwr',
-  MODE: 'ac_mode',
-  TEMP_TARGET: 'temp',
+  POWER:        'pwr',
+  MODE:         'ac_mode',
+  TEMP_TARGET:  'temp',
   TEMP_AMBIENT: 'envtemp',
-  FAN_SPEED: 'ac_mark',
-  SWING_V: 'ac_vdir',
-  SWING_H: 'ac_hdir',
-  SLEEP: 'ac_slp',
-  HEALTH: 'ac_health',
-  ECO: 'mldprf',
-  CLEAN: 'ac_clean',
-  COMFWIND: 'comfwind',
-  DISPLAY: 'scrdisp',
+  FAN_SPEED:    'ac_mark',
+  SWING_V:      'ac_vdir',
+  SWING_H:      'ac_hdir',
+  SLEEP:        'ac_slp',
+  HEALTH:       'ac_health',
+  ECO:          'mldprf',
+  CLEAN:        'ac_clean',
+  COMFWIND:     'comfwind',
+  DISPLAY:      'scrdisp',
 };
 
 // Cloud mode values: 0=COOL, 1=HEAT, 2=DRY, 3=FAN, 4=AUTO
 const CLOUD_MODE = { AUTO: 4, COOL: 0, HEAT: 1, DRY: 2, FAN: 3 };
 
-// Fan speed values
+// Fan speed values (canonical cloud numbering — stored in state.fanSpeed)
+// AUTO=0  LOW=1  MEDIUM=2  HIGH=3  TURBO=4
+// Local device uses: AUTO=0  fast=1(=HIGH)  medium=2  slow=3(=LOW)  turbo=4
+// Conversion tables applied in pollLocal / sendFanSpeed
 const FAN_SPEED = { AUTO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, TURBO: 4 };
+
+// Local ↔ canonical (cloud) fan speed conversion
+const LOCAL_TO_CLOUD_FAN = { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4 };
+const CLOUD_TO_LOCAL_FAN = { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4 };
 
 class AcFreedomAccessory {
   constructor(platform, accessory, config, deviceApi) {
-    this.platform = platform;
+    this.platform  = platform;
     this.accessory = accessory;
-    this.config = config;
+    this.config    = config;
     this.deviceApi = deviceApi;
-    this.log = platform.log;
+    this.log       = platform.log;
 
-    this.Service = platform.api.hap.Service;
+    this.Service        = platform.api.hap.Service;
     this.Characteristic = platform.api.hap.Characteristic;
 
-    // Current state cache
+    // Current state cache (fan speed always in canonical cloud numbering)
     this.state = {
-      power: false,
-      mode: CLOUD_MODE.AUTO,
-      targetTemp: 24,
+      power:       false,
+      mode:        CLOUD_MODE.AUTO,
+      targetTemp:  24,
       currentTemp: 24,
-      fanSpeed: FAN_SPEED.AUTO,
-      swingV: false,
-      swingH: false,
-      sleep: false,
-      health: false,
-      eco: false,
-      clean: false,
-      comfwind: false,
-      display: true,
+      fanSpeed:    FAN_SPEED.AUTO,
+      swingV:      false,
+      swingH:      false,
+      sleep:       false,
+      health:      false,
+      eco:         false,
+      clean:       false,
+      comfwind:    false,
+      display:     true,
     };
 
     this.presetConfigs = {
-      sleep: { label: 'Sleep Mode', cloudKey: CLOUD.SLEEP, localAttr: 'sleep' },
-      health: { label: 'Health', cloudKey: CLOUD.HEALTH, localAttr: 'health' },
-      eco: { label: 'Eco', cloudKey: CLOUD.ECO, localAttr: 'mildew' },
-      clean: { label: 'Clean', cloudKey: CLOUD.CLEAN, localAttr: 'clean' },
+      sleep:  { label: 'Sleep Mode', cloudKey: CLOUD.SLEEP,  localAttr: 'sleep'  },
+      health: { label: 'Health',     cloudKey: CLOUD.HEALTH, localAttr: 'health' },
+      eco:    { label: 'Eco',        cloudKey: CLOUD.ECO,    localAttr: 'mildew' },
+      clean:  { label: 'Clean',      cloudKey: CLOUD.CLEAN,  localAttr: 'clean'  },
     };
 
     this.setupAccessoryInfo();
@@ -79,15 +91,25 @@ class AcFreedomAccessory {
     this.pollState();
   }
 
+  // ── Unified API accessors ──────────────────────────────────────
+  // These normalise both new hybrid shape and legacy cloud/local shapes.
+  get _cloudApi()    { return this.deviceApi.cloudApi    || this.deviceApi.api; }
+  get _cloudDevice() { return this.deviceApi.cloudDevice || this.deviceApi.device; }
+  get _localApi()    { return this.deviceApi.localApi    || this.deviceApi.api; }
+
+  // Cloud credentials for re-login (platform-level first, then per-device fallback)
+  get _cloudCreds() {
+    return this.platform.config?.cloud || this.config.cloud;
+  }
+
   // ── Accessory Information ──────────────────────────────────────
   setupAccessoryInfo() {
-    const infoService = this.accessory.getService(this.Service.AccessoryInformation)
+    const svc = this.accessory.getService(this.Service.AccessoryInformation)
       || this.accessory.addService(this.Service.AccessoryInformation);
 
-    infoService
-      .setCharacteristic(this.Characteristic.Manufacturer, 'AUX')
-      .setCharacteristic(this.Characteristic.Model, 'AC Freedom')
-      .setCharacteristic(this.Characteristic.SerialNumber, this.config.name || 'AC-001');
+    svc.setCharacteristic(this.Characteristic.Manufacturer, 'AUX')
+       .setCharacteristic(this.Characteristic.Model,        'AC Freedom')
+       .setCharacteristic(this.Characteristic.SerialNumber, this.config.name || 'AC-001');
   }
 
   // ── HeaterCooler Service ───────────────────────────────────────
@@ -97,7 +119,6 @@ class AcFreedomAccessory {
 
     const C = this.Characteristic;
 
-    // Active (on/off)
     this.heaterCooler.getCharacteristic(C.Active)
       .onGet(() => this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE)
       .onSet(async (value) => {
@@ -106,18 +127,16 @@ class AcFreedomAccessory {
         if (!this.state.power) { this.resetFanToAuto(); this.resetSleep(); }
       });
 
-    // Current state
     this.heaterCooler.getCharacteristic(C.CurrentHeaterCoolerState)
       .onGet(() => {
         if (!this.state.power) return C.CurrentHeaterCoolerState.INACTIVE;
         switch (this.state.mode) {
           case CLOUD_MODE.HEAT: return C.CurrentHeaterCoolerState.HEATING;
           case CLOUD_MODE.COOL: return C.CurrentHeaterCoolerState.COOLING;
-          default: return C.CurrentHeaterCoolerState.IDLE;
+          default:              return C.CurrentHeaterCoolerState.IDLE;
         }
       });
 
-    // Target state – all HVAC modes always enabled (auto/heat/cool)
     this.heaterCooler.getCharacteristic(C.TargetHeaterCoolerState)
       .setProps({
         validValues: [
@@ -130,7 +149,7 @@ class AcFreedomAccessory {
         switch (this.state.mode) {
           case CLOUD_MODE.HEAT: return C.TargetHeaterCoolerState.HEAT;
           case CLOUD_MODE.COOL: return C.TargetHeaterCoolerState.COOL;
-          default: return C.TargetHeaterCoolerState.AUTO;
+          default:              return C.TargetHeaterCoolerState.AUTO;
         }
       })
       .onSet(async (value) => {
@@ -138,7 +157,7 @@ class AcFreedomAccessory {
         switch (value) {
           case C.TargetHeaterCoolerState.HEAT: mode = CLOUD_MODE.HEAT; break;
           case C.TargetHeaterCoolerState.COOL: mode = CLOUD_MODE.COOL; break;
-          default: mode = CLOUD_MODE.AUTO; break;
+          default:                             mode = CLOUD_MODE.AUTO; break;
         }
         this.state.mode = mode;
         await this.sendMode(mode);
@@ -146,12 +165,10 @@ class AcFreedomAccessory {
         this.resetSleep();
       });
 
-    // Current temperature
     this.heaterCooler.getCharacteristic(C.CurrentTemperature)
       .setProps({ minValue: -20, maxValue: 60 })
       .onGet(() => this.state.currentTemp);
 
-    // Cooling threshold temperature
     const step = this.config.tempStep || 0.5;
     this.heaterCooler.getCharacteristic(C.CoolingThresholdTemperature)
       .setProps({ minValue: 16, maxValue: 32, minStep: step })
@@ -161,7 +178,6 @@ class AcFreedomAccessory {
         await this.sendTemperature(value);
       });
 
-    // Heating threshold temperature
     this.heaterCooler.getCharacteristic(C.HeatingThresholdTemperature)
       .setProps({ minValue: 16, maxValue: 32, minStep: step })
       .onGet(() => this.state.targetTemp)
@@ -170,7 +186,6 @@ class AcFreedomAccessory {
         await this.sendTemperature(value);
       });
 
-    // Swing mode
     this.heaterCooler.getCharacteristic(C.SwingMode)
       .onGet(() => (this.state.swingV || this.state.swingH)
         ? C.SwingMode.SWING_ENABLED
@@ -183,9 +198,9 @@ class AcFreedomAccessory {
       });
   }
 
-  // ── Fan Service (linked to HeaterCooler) ────────────────────────
+  // ── Fan Service ────────────────────────────────────────────────
   setupFanService() {
-    // Remove legacy services from previous beta versions
+    // Remove legacy services from old beta versions
     for (const [Svc, id] of [
       [this.Service.SecuritySystem, 'fan'],
       [this.Service.Television, 'fan-tv'],
@@ -209,7 +224,6 @@ class AcFreedomAccessory {
     this.fanService = this.accessory.getServiceById(this.Service.Fanv2, 'fan')
       || this.accessory.addService(this.Service.Fanv2, 'Fan', 'fan');
 
-    // Fan Active follows AC power
     this.fanService.getCharacteristic(C.Active)
       .onGet(() => this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE)
       .onSet(async (value) => {
@@ -218,7 +232,7 @@ class AcFreedomAccessory {
         if (!this.state.power) { this.resetFanToAuto(); this.resetSleep(); }
       });
 
-    // Rotation speed: 0=Auto  25=Low  50=Medium  75=High  100=Turbo
+    // 0=Auto  25=Low  50=Medium  75=High  100=Turbo
     this.fanService.getCharacteristic(C.RotationSpeed)
       .setProps({ minValue: 0, maxValue: 100, minStep: 25 })
       .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
@@ -230,10 +244,9 @@ class AcFreedomAccessory {
     this.heaterCooler.addLinkedService(this.fanService);
   }
 
-  // ── Preset Switches (linked to HeaterCooler) ──────────────────
+  // ── Preset Switches ────────────────────────────────────────────
   setupPresetSwitches() {
     const presets = this.config.presets || { sleep: true, health: true, eco: true, clean: true };
-
     this.presetSwitches = {};
 
     for (const [key, cfg] of Object.entries(this.presetConfigs)) {
@@ -243,12 +256,12 @@ class AcFreedomAccessory {
         continue;
       }
 
-      const switchService = this.accessory.getServiceById(this.Service.Switch, key)
+      const svc = this.accessory.getServiceById(this.Service.Switch, key)
         || this.accessory.addService(this.Service.Switch, cfg.label, key);
 
-      switchService.setCharacteristic(this.Characteristic.Name, cfg.label);
+      svc.setCharacteristic(this.Characteristic.Name, cfg.label);
 
-      switchService.getCharacteristic(this.Characteristic.On)
+      svc.getCharacteristic(this.Characteristic.On)
         .onGet(() => this.state[key])
         .onSet(async (value) => {
           if (value) {
@@ -261,8 +274,8 @@ class AcFreedomAccessory {
           this.refreshPresetSwitches(key);
         });
 
-      this.heaterCooler.addLinkedService(switchService);
-      this.presetSwitches[key] = switchService;
+      this.heaterCooler.addLinkedService(svc);
+      this.presetSwitches[key] = svc;
     }
   }
 
@@ -274,7 +287,7 @@ class AcFreedomAccessory {
     }
   }
 
-  // ── Comfortable Wind Switch (linked to HeaterCooler) ────────────
+  // ── Comfortable Wind Switch ────────────────────────────────────
   setupComfWindSwitch() {
     if (this.config.showComfWind === false) {
       const existing = this.accessory.getServiceById(this.Service.Switch, 'comfwind');
@@ -297,7 +310,7 @@ class AcFreedomAccessory {
     this.heaterCooler.addLinkedService(this.comfWindSwitch);
   }
 
-  // ── Display Switch (linked to HeaterCooler) ────────────────────
+  // ── Display Switch ─────────────────────────────────────────────
   setupDisplaySwitch() {
     if (this.config.showDisplay === false) {
       const existing = this.accessory.getServiceById(this.Service.Switch, 'display');
@@ -332,32 +345,21 @@ class AcFreedomAccessory {
   resetSleep() {
     if (!this.state.sleep) return;
     this.state.sleep = false;
-    if (this.presetSwitches && this.presetSwitches.sleep) {
+    if (this.presetSwitches?.sleep) {
       this.presetSwitches.sleep.updateCharacteristic(this.Characteristic.On, false);
     }
     this.sendPreset('sleep', false).catch(() => {});
   }
 
-  // ── Fan speed ↔ percent mapping ────────────────────────────────
-  // Cloud: ac_mark 0=Auto 1=Low 2=Medium 3=High 4=Turbo (direct)
-  // Local: ac_mark 1=fast(High) 2=Medium 3=slow(Low) 4=Turbo (inverted)
+  // Fan speed ↔ HomeKit percent (canonical cloud numbering)
+  // 0=Auto(0%)  1=Low(25%)  2=Medium(50%)  3=High(75%)  4=Turbo(100%)
   fanSpeedToPercent(speed) {
-    if (this.deviceApi.type === 'local') {
-      const map = { 0: 0, 1: 75, 2: 50, 3: 25, 4: 100 };
-      return map[speed] ?? 0;
-    }
     const map = { 0: 0, 1: 25, 2: 50, 3: 75, 4: 100 };
     return map[speed] ?? 0;
   }
 
   percentToFanSpeed(pct) {
     if (pct <= 0)  return FAN_SPEED.AUTO;
-    if (this.deviceApi.type === 'local') {
-      if (pct <= 37) return FAN_SPEED.HIGH;   // local: slow=ac_mark3=visually Low
-      if (pct <= 62) return FAN_SPEED.MEDIUM;
-      if (pct <= 87) return FAN_SPEED.LOW;    // local: fast=ac_mark1=visually High
-      return FAN_SPEED.TURBO;
-    }
     if (pct <= 37) return FAN_SPEED.LOW;
     if (pct <= 62) return FAN_SPEED.MEDIUM;
     if (pct <= 87) return FAN_SPEED.HIGH;
@@ -367,10 +369,14 @@ class AcFreedomAccessory {
   // ── Poll state ─────────────────────────────────────────────────
   async pollState() {
     try {
-      if (this.deviceApi.type === 'cloud') {
+      const t = this.deviceApi.type;
+      if (t === 'local') {
+        await this.pollLocal();
+      } else if (t === 'cloud') {
         await this.pollCloud();
       } else {
-        await this.pollLocal();
+        // hybrid: try local first, fall back to cloud
+        await this.pollHybrid();
       }
       this.updateCharacteristics();
     } catch (err) {
@@ -378,56 +384,65 @@ class AcFreedomAccessory {
     }
   }
 
+  async pollHybrid() {
+    if (this.deviceApi.localApi) {
+      try {
+        await this.pollLocal();
+        return;
+      } catch (err) {
+        this.log.debug('Hybrid: local poll failed (%s), falling back to cloud', err.message);
+      }
+    }
+    await this.pollCloud();
+  }
+
   async pollCloud() {
-    const { api, device } = this.deviceApi;
     try {
-      const params = await api.getDeviceParams(device);
+      const params = await this._cloudApi.getDeviceParams(this._cloudDevice);
       if (!params) return;
 
-      this.state.power = !!params[CLOUD.POWER];
-      this.state.mode = params[CLOUD.MODE] ?? CLOUD_MODE.AUTO;
-      this.state.targetTemp = (params[CLOUD.TEMP_TARGET] ?? 240) / 10;
+      this.state.power       = !!params[CLOUD.POWER];
+      this.state.mode        = params[CLOUD.MODE]       ?? CLOUD_MODE.AUTO;
+      this.state.targetTemp  = (params[CLOUD.TEMP_TARGET]  ?? 240) / 10;
       this.state.currentTemp = (params[CLOUD.TEMP_AMBIENT] ?? 240) / 10;
-      this.state.fanSpeed = params[CLOUD.FAN_SPEED] ?? FAN_SPEED.AUTO;
-      this.state.swingV = !!params[CLOUD.SWING_V];
-      this.state.swingH = !!params[CLOUD.SWING_H];
-      this.state.sleep = !!params[CLOUD.SLEEP];
-      this.state.health = !!params[CLOUD.HEALTH];
-      this.state.eco = !!params[CLOUD.ECO];
-      this.state.clean = !!params[CLOUD.CLEAN];
-      this.state.comfwind = !!params[CLOUD.COMFWIND];
-      this.state.display = !!params[CLOUD.DISPLAY];
+      this.state.fanSpeed    = params[CLOUD.FAN_SPEED]  ?? FAN_SPEED.AUTO;
+      this.state.swingV      = !!params[CLOUD.SWING_V];
+      this.state.swingH      = !!params[CLOUD.SWING_H];
+      this.state.sleep       = !!params[CLOUD.SLEEP];
+      this.state.health      = !!params[CLOUD.HEALTH];
+      this.state.eco         = !!params[CLOUD.ECO];
+      this.state.clean       = !!params[CLOUD.CLEAN];
+      this.state.comfwind    = !!params[CLOUD.COMFWIND];
+      this.state.display     = !!params[CLOUD.DISPLAY];
     } catch (err) {
-      // Transient "server busy" errors — silently skip this cycle
-      if (err.message && err.message.includes('server busy')) return;
-      // Re-login on token expiry
-      if (err.message && err.message.includes('token')) {
-        const cloud = this.config.cloud;
-        await api.login(cloud.email, cloud.password);
+      if (err.message?.includes('server busy')) return;
+      if (err.message?.includes('token')) {
+        const creds = this._cloudCreds;
+        if (creds) await this._cloudApi.login(creds.email, creds.password);
       }
       throw err;
     }
   }
 
   async pollLocal() {
-    const { api } = this.deviceApi;
-    const ok = await api.update();
+    const api = this._localApi;
+    const ok  = await api.update();
     if (!ok) return;
 
     const s = api.state;
-    this.state.power = !!s.power;
-    this.state.targetTemp = s.temperature;
+    this.state.power       = !!s.power;
+    this.state.targetTemp  = s.temperature;
     this.state.currentTemp = s.ambientTemp;
-    this.state.fanSpeed = s.fanSpeed;
-    this.state.swingV = s.verticalFixation === 7;
-    this.state.swingH = s.horizontalFixation === 7;
-    this.state.sleep = !!s.sleep;
-    this.state.health = !!s.health;
-    this.state.eco = !!s.mildew;
-    this.state.clean = !!s.clean;
-    this.state.display = !!s.display;
+    // Normalise local fan speed → canonical cloud numbering
+    this.state.fanSpeed    = LOCAL_TO_CLOUD_FAN[s.fanSpeed] ?? FAN_SPEED.AUTO;
+    this.state.swingV      = s.verticalFixation === 7;
+    this.state.swingH      = s.horizontalFixation === 7;
+    this.state.sleep       = !!s.sleep;
+    this.state.health      = !!s.health;
+    this.state.eco         = !!s.mildew;
+    this.state.clean       = !!s.clean;
+    this.state.display     = !!s.display;
 
-    // Map local mode to cloud mode values
     const modeMap = { 1: CLOUD_MODE.COOL, 2: CLOUD_MODE.DRY, 4: CLOUD_MODE.HEAT, 6: CLOUD_MODE.FAN, 8: CLOUD_MODE.AUTO };
     this.state.mode = modeMap[s.mode] ?? CLOUD_MODE.AUTO;
   }
@@ -442,24 +457,16 @@ class AcFreedomAccessory {
       this.heaterCooler.updateCharacteristic(C.CurrentHeaterCoolerState,
         C.CurrentHeaterCoolerState.INACTIVE);
     } else {
-      switch (this.state.mode) {
-        case CLOUD_MODE.HEAT:
-          this.heaterCooler.updateCharacteristic(C.CurrentHeaterCoolerState,
-            C.CurrentHeaterCoolerState.HEATING);
-          break;
-        case CLOUD_MODE.COOL:
-          this.heaterCooler.updateCharacteristic(C.CurrentHeaterCoolerState,
-            C.CurrentHeaterCoolerState.COOLING);
-          break;
-        default:
-          this.heaterCooler.updateCharacteristic(C.CurrentHeaterCoolerState,
-            C.CurrentHeaterCoolerState.IDLE);
-      }
+      const hcState = {
+        [CLOUD_MODE.HEAT]: C.CurrentHeaterCoolerState.HEATING,
+        [CLOUD_MODE.COOL]: C.CurrentHeaterCoolerState.COOLING,
+      }[this.state.mode] ?? C.CurrentHeaterCoolerState.IDLE;
+      this.heaterCooler.updateCharacteristic(C.CurrentHeaterCoolerState, hcState);
     }
 
-    this.heaterCooler.updateCharacteristic(C.CurrentTemperature, this.state.currentTemp);
-    this.heaterCooler.updateCharacteristic(C.CoolingThresholdTemperature, this.state.targetTemp);
-    this.heaterCooler.updateCharacteristic(C.HeatingThresholdTemperature, this.state.targetTemp);
+    this.heaterCooler.updateCharacteristic(C.CurrentTemperature,           this.state.currentTemp);
+    this.heaterCooler.updateCharacteristic(C.CoolingThresholdTemperature,  this.state.targetTemp);
+    this.heaterCooler.updateCharacteristic(C.HeatingThresholdTemperature,  this.state.targetTemp);
     this.heaterCooler.updateCharacteristic(C.SwingMode,
       (this.state.swingV || this.state.swingH) ? C.SwingMode.SWING_ENABLED : C.SwingMode.SWING_DISABLED);
 
@@ -477,66 +484,131 @@ class AcFreedomAccessory {
     if (this.comfWindSwitch) {
       this.comfWindSwitch.updateCharacteristic(C.On, this.state.comfwind);
     }
-
     if (this.displaySwitch) {
       this.displaySwitch.updateCharacteristic(C.On, this.state.display);
     }
   }
 
+  // ── Hybrid send helper ─────────────────────────────────────────
+  // Tries local first; falls back to cloud on error.
+  async hybridSend(localFn, cloudFn) {
+    if (this.deviceApi.localApi) {
+      try {
+        return await localFn();
+      } catch (err) {
+        this.log.warn('Hybrid: local command failed (%s) — using cloud', err.message);
+      }
+    }
+    return cloudFn();
+  }
+
   // ── Send commands ──────────────────────────────────────────────
   async sendPower(on) {
-    if (this.deviceApi.type === 'cloud') {
-      await this.cloudSet({ [CLOUD.POWER]: on ? 1 : 0 });
+    const t = this.deviceApi.type;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => { const a = this._localApi; a.state.power = on ? 1 : 0; return a.setState(); },
+        () => this.cloudSet({ [CLOUD.POWER]: on ? 1 : 0 }),
+      );
+    }
+    if (t === 'local') {
+      this._localApi.state.power = on ? 1 : 0;
+      await this._localApi.setState();
     } else {
-      this.deviceApi.api.state.power = on ? 1 : 0;
-      await this.deviceApi.api.setState();
+      await this.cloudSet({ [CLOUD.POWER]: on ? 1 : 0 });
     }
   }
 
   async sendMode(mode) {
-    if (this.deviceApi.type === 'cloud') {
-      await this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode });
+    const localModeMap = {
+      [CLOUD_MODE.AUTO]: 8, [CLOUD_MODE.COOL]: 1,
+      [CLOUD_MODE.HEAT]: 4, [CLOUD_MODE.DRY]: 2, [CLOUD_MODE.FAN]: 6,
+    };
+    const t = this.deviceApi.type;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => {
+          const a = this._localApi;
+          a.state.power = 1;
+          a.state.mode  = localModeMap[mode] ?? 8;
+          return a.setState();
+        },
+        () => this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode }),
+      );
+    }
+    if (t === 'local') {
+      const a = this._localApi;
+      a.state.power = 1;
+      a.state.mode  = localModeMap[mode] ?? 8;
+      await a.setState();
     } else {
-      const localModeMap = {
-        [CLOUD_MODE.AUTO]: 8, [CLOUD_MODE.COOL]: 1,
-        [CLOUD_MODE.HEAT]: 4, [CLOUD_MODE.DRY]: 2, [CLOUD_MODE.FAN]: 6,
-      };
-      const api = this.deviceApi.api;
-      api.state.power = 1;
-      api.state.mode = localModeMap[mode] ?? 8;
-      await api.setState();
+      await this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode });
     }
   }
 
   async sendTemperature(temp) {
-    if (this.deviceApi.type === 'cloud') {
-      await this.cloudSet({ [CLOUD.TEMP_TARGET]: Math.round(temp * 10) });
+    const t = this.deviceApi.type;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => { const a = this._localApi; a.state.temperature = temp; return a.setState(); },
+        () => this.cloudSet({ [CLOUD.TEMP_TARGET]: Math.round(temp * 10) }),
+      );
+    }
+    if (t === 'local') {
+      this._localApi.state.temperature = temp;
+      await this._localApi.setState();
     } else {
-      this.deviceApi.api.state.temperature = temp;
-      await this.deviceApi.api.setState();
+      await this.cloudSet({ [CLOUD.TEMP_TARGET]: Math.round(temp * 10) });
     }
   }
 
   async sendFanSpeed(speed) {
-    if (this.deviceApi.type === 'cloud') {
-      await this.cloudSet({ [CLOUD.FAN_SPEED]: speed });
+    const t = this.deviceApi.type;
+    // speed is canonical cloud numbering; convert for local
+    const localSpeed = CLOUD_TO_LOCAL_FAN[speed] ?? 0;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => {
+          const a = this._localApi;
+          a.state.fanSpeed = localSpeed;
+          a.state.turbo    = speed === FAN_SPEED.TURBO ? 1 : 0;
+          a.state.mute     = 0;
+          return a.setState();
+        },
+        () => this.cloudSet({ [CLOUD.FAN_SPEED]: speed }),
+      );
+    }
+    if (t === 'local') {
+      const a = this._localApi;
+      a.state.fanSpeed = localSpeed;
+      a.state.turbo    = speed === FAN_SPEED.TURBO ? 1 : 0;
+      a.state.mute     = 0;
+      await a.setState();
     } else {
-      const api = this.deviceApi.api;
-      api.state.fanSpeed = speed;
-      api.state.turbo = speed === FAN_SPEED.TURBO ? 1 : 0;
-      api.state.mute = 0;
-      await api.setState();
+      await this.cloudSet({ [CLOUD.FAN_SPEED]: speed });
     }
   }
 
   async sendSwing(v, h) {
-    if (this.deviceApi.type === 'cloud') {
-      await this.cloudSet({ [CLOUD.SWING_V]: v ? 1 : 0, [CLOUD.SWING_H]: h ? 1 : 0 });
+    const t = this.deviceApi.type;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => {
+          const a = this._localApi;
+          a.state.verticalFixation   = v ? 7 : 0;
+          a.state.horizontalFixation = h ? 7 : 0;
+          return a.setState();
+        },
+        () => this.cloudSet({ [CLOUD.SWING_V]: v ? 1 : 0, [CLOUD.SWING_H]: h ? 1 : 0 }),
+      );
+    }
+    if (t === 'local') {
+      const a = this._localApi;
+      a.state.verticalFixation   = v ? 7 : 0;
+      a.state.horizontalFixation = h ? 7 : 0;
+      await a.setState();
     } else {
-      const api = this.deviceApi.api;
-      api.state.verticalFixation = v ? 7 : 0;
-      api.state.horizontalFixation = h ? 7 : 0;
-      await api.setState();
+      await this.cloudSet({ [CLOUD.SWING_V]: v ? 1 : 0, [CLOUD.SWING_H]: h ? 1 : 0 });
     }
   }
 
@@ -544,47 +616,70 @@ class AcFreedomAccessory {
     const cfg = this.presetConfigs[key];
     if (!cfg) return;
 
-    if (this.deviceApi.type === 'cloud') {
-      const update = {
-        [CLOUD.SLEEP]: 0,
-        [CLOUD.HEALTH]: 0,
-        [CLOUD.ECO]: 0,
-        [CLOUD.CLEAN]: 0,
-      };
-      if (on) update[cfg.cloudKey] = 1;
-      await this.cloudSet(update);
+    const cloudUpdate = {
+      [CLOUD.SLEEP]: 0, [CLOUD.HEALTH]: 0,
+      [CLOUD.ECO]: 0,   [CLOUD.CLEAN]: 0,
+    };
+    if (on) cloudUpdate[cfg.cloudKey] = 1;
+
+    const t = this.deviceApi.type;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => {
+          const a = this._localApi;
+          a.state.sleep = 0; a.state.health = 0;
+          a.state.mildew = 0; a.state.clean = 0;
+          if (on) a.state[cfg.localAttr] = 1;
+          return a.setState();
+        },
+        () => this.cloudSet(cloudUpdate),
+      );
+    }
+    if (t === 'local') {
+      const a = this._localApi;
+      a.state.sleep = 0; a.state.health = 0;
+      a.state.mildew = 0; a.state.clean = 0;
+      if (on) a.state[cfg.localAttr] = 1;
+      await a.setState();
     } else {
-      const api = this.deviceApi.api;
-      api.state.sleep = 0;
-      api.state.health = 0;
-      api.state.mildew = 0;
-      api.state.clean = 0;
-      if (on) api.state[cfg.localAttr] = 1;
-      await api.setState();
+      await this.cloudSet(cloudUpdate);
     }
   }
 
   async sendComfWind(on) {
-    if (this.deviceApi.type === 'cloud') {
-      await this.cloudSet({ [CLOUD.COMFWIND]: on ? 1 : 0 });
+    const t = this.deviceApi.type;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => { const a = this._localApi; a.state.comfwind = on ? 1 : 0; return a.setState(); },
+        () => this.cloudSet({ [CLOUD.COMFWIND]: on ? 1 : 0 }),
+      );
+    }
+    if (t === 'local') {
+      this._localApi.state.comfwind = on ? 1 : 0;
+      await this._localApi.setState();
     } else {
-      this.deviceApi.api.state.comfwind = on ? 1 : 0;
-      await this.deviceApi.api.setState();
+      await this.cloudSet({ [CLOUD.COMFWIND]: on ? 1 : 0 });
     }
   }
 
   async sendDisplay(on) {
-    if (this.deviceApi.type === 'cloud') {
-      await this.cloudSet({ [CLOUD.DISPLAY]: on ? 1 : 0 });
+    const t = this.deviceApi.type;
+    if (t === 'hybrid') {
+      return this.hybridSend(
+        () => { const a = this._localApi; a.state.display = on ? 1 : 0; return a.setState(); },
+        () => this.cloudSet({ [CLOUD.DISPLAY]: on ? 1 : 0 }),
+      );
+    }
+    if (t === 'local') {
+      this._localApi.state.display = on ? 1 : 0;
+      await this._localApi.setState();
     } else {
-      this.deviceApi.api.state.display = on ? 1 : 0;
-      await this.deviceApi.api.setState();
+      await this.cloudSet({ [CLOUD.DISPLAY]: on ? 1 : 0 });
     }
   }
 
   async cloudSet(params) {
-    const { api, device } = this.deviceApi;
-    await api.setDeviceParams(device, params);
+    await this._cloudApi.setDeviceParams(this._cloudDevice, params);
   }
 }
 

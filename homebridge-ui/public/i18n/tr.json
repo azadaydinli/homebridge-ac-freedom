@@ -38,5 +38,16 @@
   "pollIntervalHint": "Klima durumunun ne sıklıkla sorgulanacağı (5–300)",
   "addDevice": "Cihaz Ekle",
   "remove": "Kaldır",
-  "featuresHint": "Temiz bir HomeKit görünümü için Fan ve yalnızca bir ön ayar modunun (önerilen: Uyku) etkinleştirilmesi tavsiye edilir."
+  "featuresHint": "Temiz bir HomeKit görünümü için Fan ve yalnızca bir ön ayar modunun (önerilen: Uyku) etkinleştirilmesi tavsiye edilir.",
+  "hybrid": "Hybrid",
+  "localOnly": "Yalnız Lokal",
+  "cloudCredentials": "Bulut Giriş Bilgileri",
+  "fetchDevices": "Cihazları Getir",
+  "fetching": "Getiriliyor...",
+  "devicesFound": "cihaz bulundu",
+  "fetchFailed": "Getirme başarısız",
+  "endpointId": "Cihaz ID",
+  "endpointIdHint": "Cihazları Getir düyməsi ilə avtomatik doldurulur. Boş bırakılırsa ilk bulunan cihaz kullanılır.",
+  "localOverride": "Yerel Geçersiz Kılma (isteğe bağlı)",
+  "localOverrideHint": "Doğrudan yerel bağlantı için IP + MAC ekle. Mevcut olduğunda yerel bağlantı buluta tercih edilir."
 }

@@ -38,5 +38,16 @@
   "pollIntervalHint": "Con qué frecuencia obtener el estado del AC (5–300)",
   "addDevice": "Agregar dispositivo",
   "remove": "Eliminar",
-  "featuresHint": "Para una apariencia limpia en HomeKit, se recomienda activar el Ventilador y solo un modo preestablecido — Sueño es la opción sugerida."
+  "featuresHint": "Para una apariencia limpia en HomeKit, se recomienda activar el Ventilador y solo un modo preestablecido — Sueño es la opción sugerida.",
+  "hybrid": "Híbrido",
+  "localOnly": "Solo local",
+  "cloudCredentials": "Credenciales de nube",
+  "fetchDevices": "Obtener dispositivos",
+  "fetching": "Obteniendo...",
+  "devicesFound": "dispositivos encontrados",
+  "fetchFailed": "Error al obtener",
+  "endpointId": "ID del dispositivo",
+  "endpointIdHint": "Se rellena automáticamente con «Obtener dispositivos». Dejar vacío para usar el primer dispositivo detectado.",
+  "localOverride": "Conexión local (opcional)",
+  "localOverrideHint": "Añadir IP + MAC para conexión local directa. Si está disponible, se prefiere la conexión local."
 }

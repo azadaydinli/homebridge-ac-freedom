@@ -38,5 +38,16 @@
   "pollIntervalHint": "에어컨 상태 조회 빈도 (5–300)",
   "addDevice": "기기 추가",
   "remove": "제거",
-  "featuresHint": "깔끔한 HomeKit 화면을 위해 팬과 프리셋 모드 하나만 활성화하는 것을 권장합니다 — 수면을 추천합니다."
+  "featuresHint": "깔끔한 HomeKit 화면을 위해 팬과 프리셋 모드 하나만 활성화하는 것을 권장합니다 — 수면을 추천합니다.",
+  "hybrid": "하이브리드",
+  "localOnly": "로컬 전용",
+  "cloudCredentials": "클라우드 자격 증명",
+  "fetchDevices": "기기 가져오기",
+  "fetching": "가져오는 중...",
+  "devicesFound": "기기 발견됨",
+  "fetchFailed": "가져오기 실패",
+  "endpointId": "기기 ID",
+  "endpointIdHint": "「기기 가져오기」로 자동 입력됩니다. 비워두면 첫 번째 발견된 기기를 사용합니다.",
+  "localOverride": "로컬 연결 (선택 사항)",
+  "localOverrideHint": "직접 로컬 연결을 위해 IP + MAC을 추가하세요. 사용 가능한 경우 로컬 연결이 우선됩니다."
 }

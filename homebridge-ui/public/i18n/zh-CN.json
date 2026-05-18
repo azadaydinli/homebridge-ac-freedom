@@ -38,5 +38,16 @@
   "pollIntervalHint": "获取空调状态的频率（5–300）",
   "addDevice": "添加设备",
   "remove": "删除",
-  "featuresHint": "为保持 HomeKit 界面整洁，建议仅启用风扇和一个预设模式 — 推荐选择睡眠。"
+  "featuresHint": "为保持 HomeKit 界面整洁，建议仅启用风扇和一个预设模式 — 推荐选择睡眠。",
+  "hybrid": "混合",
+  "localOnly": "仅本地",
+  "cloudCredentials": "云端凭据",
+  "fetchDevices": "获取设备",
+  "fetching": "获取中...",
+  "devicesFound": "个设备已找到",
+  "fetchFailed": "获取失败",
+  "endpointId": "设备ID",
+  "endpointIdHint": "通过「获取设备」自动填充。留空将使用第一个发现的设备。",
+  "localOverride": "本地连接（可选）",
+  "localOverrideHint": "添加IP + MAC进行直接本地连接。如可用，本地连接优先于云端。"
 }

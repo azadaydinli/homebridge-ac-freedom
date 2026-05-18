@@ -38,5 +38,16 @@
   "pollIntervalHint": "Ogni quanto recuperare lo stato del AC (5–300)",
   "addDevice": "Aggiungi dispositivo",
   "remove": "Rimuovi",
-  "featuresHint": "Per un aspetto HomeKit ordinato, si consiglia di abilitare il Ventilatore e un solo modo preimpostato — Sonno è la scelta suggerita."
+  "featuresHint": "Per un aspetto HomeKit ordinato, si consiglia di abilitare il Ventilatore e un solo modo preimpostato — Sonno è la scelta suggerita.",
+  "hybrid": "Ibrido",
+  "localOnly": "Solo locale",
+  "cloudCredentials": "Credenziali cloud",
+  "fetchDevices": "Recupera dispositivi",
+  "fetching": "Recupero in corso...",
+  "devicesFound": "dispositivi trovati",
+  "fetchFailed": "Recupero non riuscito",
+  "endpointId": "ID dispositivo",
+  "endpointIdHint": "Compilato automaticamente tramite «Recupera dispositivi». Lasciare vuoto per usare il primo dispositivo rilevato.",
+  "localOverride": "Connessione locale (opzionale)",
+  "localOverrideHint": "Aggiungere IP + MAC per la connessione locale diretta. Se disponibile, la connessione locale è preferita."
 }

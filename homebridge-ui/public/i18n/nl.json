@@ -38,5 +38,16 @@
   "pollIntervalHint": "Hoe vaak de AC-status wordt opgehaald (5–300)",
   "addDevice": "Apparaat toevoegen",
   "remove": "Verwijderen",
-  "featuresHint": "Voor een overzichtelijk HomeKit-uiterlijk wordt aanbevolen alleen de Ventilator en één voorkeursmodus in te schakelen — Slaap is de aanbevolen keuze."
+  "featuresHint": "Voor een overzichtelijk HomeKit-uiterlijk wordt aanbevolen alleen de Ventilator en één voorkeursmodus in te schakelen — Slaap is de aanbevolen keuze.",
+  "hybrid": "Hybride",
+  "localOnly": "Alleen lokaal",
+  "cloudCredentials": "Cloudinloggegevens",
+  "fetchDevices": "Apparaten ophalen",
+  "fetching": "Ophalen...",
+  "devicesFound": "apparaten gevonden",
+  "fetchFailed": "Ophalen mislukt",
+  "endpointId": "Apparaat-ID",
+  "endpointIdHint": "Automatisch ingevuld via «Apparaten ophalen». Leeg laten om het eerste gevonden apparaat te gebruiken.",
+  "localOverride": "Lokale verbinding (optioneel)",
+  "localOverrideHint": "Voeg IP + MAC toe voor directe lokale verbinding. Indien beschikbaar wordt lokale verbinding verkozen."
 }

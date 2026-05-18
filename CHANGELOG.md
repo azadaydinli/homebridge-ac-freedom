@@ -1,6 +1,20 @@
 # Changelog
 
-## 2.2.3
+## 2.3.0
+
+- **New architecture: Hybrid + Local Only connection modes**
+  - **Hybrid** (replaces Cloud): single cloud login at platform level → all devices auto-discovered; optional IP + MAC per device for direct Broadlink UDP control (local preferred, cloud fallback)
+  - **Local Only**: unchanged — Broadlink UDP only, no cloud needed
+  - Old `cloud` connection mode handled transparently as backward compat
+- Add **Fetch Devices** button in config UI: logs into AUX Cloud and auto-populates device cards
+- Add `homebridge-ui/server.js` backend handler for `/fetchDevices` request
+- Move cloud credentials from per-device to platform level (`cloud.email`, `cloud.password`, `cloud.region`)
+- Add `endpointId` per-device field (replaces per-device `cloud.deviceId`)
+- Normalize fan speed to canonical cloud numbering in state (fixes hybrid local/cloud switching)
+- Add 11 new i18n keys in all 14 languages (hybrid, localOnly, cloudCredentials, fetchDevices, etc.)
+- Bump purple accent colour for Hybrid badge in config UI
+
+## 2.2.4
 
 - Add localised features hint in config UI (14 languages)
 - Fix README configuration examples (was showing outdated `cloudDevices`/`localDevices` format)

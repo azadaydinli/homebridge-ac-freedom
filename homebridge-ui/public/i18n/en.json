@@ -38,5 +38,16 @@
   "pollIntervalHint": "How often to fetch the AC state (5–300)",
   "addDevice": "Add Device",
   "remove": "Remove",
-  "featuresHint": "For a clean HomeKit appearance, it is recommended to enable Fan and only one preset mode — Sleep is the suggested choice."
+  "featuresHint": "For a clean HomeKit appearance, it is recommended to enable Fan and only one preset mode — Sleep is the suggested choice.",
+  "hybrid": "Hybrid",
+  "localOnly": "Local Only",
+  "cloudCredentials": "Cloud Credentials",
+  "fetchDevices": "Fetch Devices",
+  "fetching": "Fetching...",
+  "devicesFound": "devices found",
+  "fetchFailed": "Fetch failed",
+  "endpointId": "Device ID",
+  "endpointIdHint": "Auto-filled via Fetch Devices. Leave empty to use the first discovered device.",
+  "localOverride": "Local Override (optional)",
+  "localOverrideHint": "Add IP + MAC for direct local connection. Local is preferred over cloud when available."
 }
