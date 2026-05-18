@@ -29,7 +29,7 @@ const CLOUD = {
 const CLOUD_MODE = { AUTO: 4, COOL: 0, HEAT: 1, DRY: 2, FAN: 3 };
 
 // Fan speed values
-const FAN_SPEED = { AUTO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, TURBO: 4, MUTE: 5 };
+const FAN_SPEED = { AUTO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, TURBO: 4 };
 
 class AcFreedomAccessory {
   constructor(platform, accessory, config, deviceApi) {
@@ -524,7 +524,7 @@ class AcFreedomAccessory {
       const api = this.deviceApi.api;
       api.state.fanSpeed = speed;
       api.state.turbo = speed === FAN_SPEED.TURBO ? 1 : 0;
-      api.state.mute = speed === FAN_SPEED.MUTE ? 1 : 0;
+      api.state.mute = 0;
       await api.setState();
     }
   }

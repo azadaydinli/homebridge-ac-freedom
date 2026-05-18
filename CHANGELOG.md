@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.2.3
+
+- Add localised features hint in config UI (14 languages)
+- Fix README configuration examples (was showing outdated `cloudDevices`/`localDevices` format)
+- Add `pollInterval` to `config.schema.json`
+- Move plugin/platform name constants to `platform.js`
+- Remove unused `FAN_SPEED.MUTE` constant
+
+## 2.2.2
+
+- Add custom Homebridge config UI (`homebridge-ui/public/index.html`)
+  - Collapsible device cards with Cloud/Local segmented toggle
+  - Feature toggle grid (Fan, Sleep, Display / Health, Clean, Eco, Comf. Wind)
+  - Auto-save on every change
+- Add i18n support with 14 languages (en, tr, ru, de, fr, es, it, ja, ko, zh-CN, ar, nl, pl, pt)
+
+## 2.2.1
+
+- Fan slider snaps to 25% increments only (0 / 25 / 50 / 75 / 100%)
+- Fix local device fan speed mapping (Low/High were swapped)
+- Fan resets to Auto when AC power toggles or HVAC mode changes
+- Sleep preset resets when AC power toggles or HVAC mode changes
+- Remove Mute/Silent fan speed option from slider
+
 ## 2.1.1
 
 - Mark plugin as compatible with Homebridge v2

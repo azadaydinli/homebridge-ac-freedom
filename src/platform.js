@@ -10,6 +10,9 @@ const { AcFreedomAccessory } = require('./ac-accessory');
 const { AuxCloudAPI } = require('./cloud-api');
 const { BroadlinkAcApi } = require('./broadlink-api');
 
+const PLUGIN_NAME   = 'homebridge-ac-freedom';
+const PLATFORM_NAME = 'AcFreedom';
+
 class AcFreedomPlatform {
   constructor(log, config, api) {
     this.log = log;
@@ -68,7 +71,7 @@ class AcFreedomPlatform {
       this.log.info('Adding new accessory: %s', deviceConfig.name);
       const accessory = new this.api.platformAccessory(deviceConfig.name, uuid);
       new AcFreedomAccessory(this, accessory, deviceConfig, deviceApi);
-      this.api.registerPlatformAccessories('homebridge-ac-freedom', 'AcFreedom', [accessory]);
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       this.accessories.set(uuid, accessory);
     }
   }
@@ -133,4 +136,4 @@ class AcFreedomPlatform {
   }
 }
 
-module.exports = { AcFreedomPlatform };
+module.exports = { AcFreedomPlatform, PLUGIN_NAME, PLATFORM_NAME };

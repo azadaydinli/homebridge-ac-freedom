@@ -87,12 +87,15 @@ npm install -g homebridge-ac-freedom
     {
       "platform": "AcFreedom",
       "name": "AC Freedom",
-      "cloudDevices": [
+      "devices": [
         {
           "name": "Living Room AC",
-          "email": "your-email@example.com",
-          "password": "your-password",
-          "region": "eu"
+          "connection": "cloud",
+          "cloud": {
+            "email": "your-email@example.com",
+            "password": "your-password",
+            "region": "eu"
+          }
         }
       ]
     }
@@ -108,11 +111,14 @@ npm install -g homebridge-ac-freedom
     {
       "platform": "AcFreedom",
       "name": "AC Freedom",
-      "localDevices": [
+      "devices": [
         {
           "name": "Bedroom AC",
-          "ip": "192.168.1.100",
-          "mac": "AA:BB:CC:DD:EE:FF"
+          "connection": "local",
+          "local": {
+            "ip": "192.168.1.100",
+            "mac": "AA:BB:CC:DD:EE:FF"
+          }
         }
       ]
     }
@@ -124,27 +130,30 @@ npm install -g homebridge-ac-freedom
 
 ## Configuration Options
 
-### Cloud Device Options
+### Device Options (all modes)
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `name` | string | Yes | — | Device name in HomeKit |
+| `connection` | string | Yes | `"cloud"` | Connection mode: `cloud` or `local` |
+| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
+| `tempStep` | number | No | `0.5` | Temperature step: `0.5` or `1` |
+
+### Cloud Settings (`cloud` object)
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
 | `email` | string | Yes | — | AC Freedom app email |
 | `password` | string | Yes | — | AC Freedom app password |
 | `region` | string | No | `"eu"` | Server region: `eu`, `usa`, `cn`, `rus` |
 | `deviceId` | string | No | — | Specific device ID (leave empty to auto-detect) |
-| `showExtras` | boolean | No | `false` | Show fan, sleep, and extra switches |
-| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
 
-### Local Device Options
+### Local Settings (`local` object)
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Device name in HomeKit |
 | `ip` | string | Yes | — | AC unit's local IP address |
 | `mac` | string | Yes | — | AC unit's MAC address (`AA:BB:CC:DD:EE:FF`) |
-| `showExtras` | boolean | No | `false` | Show fan, sleep, and extra switches |
-| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
 
 ### Feature Switches
 
