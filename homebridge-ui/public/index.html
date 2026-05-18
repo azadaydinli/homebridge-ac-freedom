@@ -187,6 +187,16 @@
 
 <script>
 (async () => {
+  /* ── Global error safety net ───────────────────────────────── */
+  window.addEventListener('error', ev => {
+    const app = document.getElementById('app');
+    if (app && !app.innerHTML) {
+      app.innerHTML = `<div style="color:#dc2626;padding:16px;font-family:monospace;font-size:12px">
+        UI error: ${ev.message || ev}<br>Check browser console for details.
+      </div>`;
+    }
+  });
+
   /* ── Translations ──────────────────────────────────────────── */
   let t = {};
   async function loadTranslations() {

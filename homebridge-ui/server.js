@@ -4,14 +4,25 @@
  * Provides a /fetchDevices endpoint so the config UI can log in to the
  * AUX Cloud API and return the list of discovered devices without
  * restarting Homebridge.
+ *
+ * Uses @homebridge/plugin-ui-utils (required by homebridge-config-ui-x v5+).
  */
 
 'use strict';
 
-const { AuxCloudAPI } = require('../src/cloud-api');
+const { HomebridgePluginUiServer } = require('@homebridge/plugin-ui-utils');
 
-module.exports = (homebridge) => {
-  homebridge.onRequest('/fetchDevices', async (payload) => {
+class AcFreedomUiServer extends HomebridgePluginUiServer {
+  constructor() {
+    super();
+    this.onRequest('/fetchDevices', this.fetchDevices.bind(this));
+    this.ready();
+  }
+
+  async fetchDevices(payload) {
+    // Lazy-require so a load-time error never blocks the UI
+    const { AuxCloudAPI } = require('../src/cloud-api');
+
     const { email, password, region } = payload || {};
 
     if (!email || !password) {
@@ -35,5 +46,7 @@ module.exports = (homebridge) => {
         name:       d.friendlyName || 'AUX AC',
       })),
     };
-  });
-};
+  }
+}
+
+(() => { return new AcFreedomUiServer(); })();
