@@ -3,12 +3,15 @@
     --accent:        #0095c8;
     --accent-light:  rgba(0,149,200,0.10);
     --accent-border: rgba(0,149,200,0.28);
-    --hybrid:        #7c3aed;
-    --hybrid-light:  rgba(124,58,237,0.08);
-    --hybrid-border: rgba(124,58,237,0.22);
-    --local:         #16a34a;
-    --local-light:   rgba(22,163,74,0.07);
-    --local-border:  rgba(22,163,74,0.22);
+    --hybrid:        #16a34a;
+    --hybrid-light:  rgba(22,163,74,0.08);
+    --hybrid-border: rgba(22,163,74,0.22);
+    --cloud-badge:        #dc2626;
+    --cloud-badge-light:  rgba(220,38,38,0.08);
+    --cloud-badge-border: rgba(220,38,38,0.28);
+    --local:         #a16207;
+    --local-light:   rgba(161,98,7,0.08);
+    --local-border:  rgba(161,98,7,0.25);
     --text:          #1a1a2e;
     --text-muted:    #6b7280;
     --border:        #e5e7eb;
@@ -22,12 +25,15 @@
       --accent:        #00b4d8;
       --accent-light:  rgba(0,180,216,0.08);
       --accent-border: rgba(0,180,216,0.26);
-      --hybrid:        #a78bfa;
-      --hybrid-light:  rgba(167,139,250,0.08);
-      --hybrid-border: rgba(167,139,250,0.22);
-      --local:         #4ade80;
-      --local-light:   rgba(74,222,128,0.08);
-      --local-border:  rgba(74,222,128,0.22);
+      --hybrid:        #4ade80;
+      --hybrid-light:  rgba(74,222,128,0.08);
+      --hybrid-border: rgba(74,222,128,0.22);
+      --cloud-badge:        #f87171;
+      --cloud-badge-light:  rgba(248,113,113,0.08);
+      --cloud-badge-border: rgba(248,113,113,0.28);
+      --local:         #facc15;
+      --local-light:   rgba(250,204,21,0.08);
+      --local-border:  rgba(250,204,21,0.22);
       --text:          #e2e8f0;
       --text-muted:    #94a3b8;
       --border:        #334155;
@@ -102,8 +108,6 @@
     border: 1.5px solid var(--accent-border); border-radius: 12px;
     margin-bottom: 12px; background: var(--accent-light); overflow: hidden;
   }
-  .device-card.hybrid-card { border-color: var(--hybrid-border); background: var(--hybrid-light); }
-  .device-card.local-card  { border-color: var(--local-border);  background: var(--local-light); }
 
   .device-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -115,14 +119,12 @@
   .chevron.open { transform: rotate(90deg); }
   .dev-name { font-size: 14px; font-weight: 700; color: var(--accent);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .device-card.hybrid-card .dev-name { color: var(--hybrid); }
-  .device-card.local-card  .dev-name { color: var(--local);  }
 
   .conn-badge {
     font-size: 10px; font-weight: 700; letter-spacing: .5px;
     padding: 2px 7px; border-radius: 20px; flex-shrink: 0; text-transform: uppercase;
   }
-  .conn-badge.cloud  { background: var(--accent-light);  color: var(--accent);  border: 1px solid var(--accent-border); }
+  .conn-badge.cloud  { background: var(--cloud-badge-light); color: var(--cloud-badge); border: 1px solid var(--cloud-badge-border); }
   .conn-badge.hybrid { background: var(--hybrid-light); color: var(--hybrid); border: 1px solid var(--hybrid-border); }
   .conn-badge.local  { background: var(--local-light);  color: var(--local);  border: 1px solid var(--local-border); }
   .dev-meta { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
@@ -131,8 +133,6 @@
     padding: 14px 16px 18px;
     border-top: 1px solid var(--accent-border);
   }
-  .device-card.hybrid-card .device-body { border-color: var(--hybrid-border); }
-  .device-card.local-card  .device-body { border-color: var(--local-border); }
   .device-body.collapsed { display: none; }
 
   /* ── Connection toggle (segmented) ── */
@@ -215,19 +215,22 @@
     }
   });
 
-  /* ── i18n ─────────────────────────────────────────────────── */
-  let t = {};
-  async function loadTranslations() {
-    let lang = 'en';
-    try { lang = await homebridge.i18nCurrentLang(); } catch {}
-    for (const l of [lang, lang.split('-')[0], 'en']) {
-      try {
-        const r = await fetch(`./i18n/${l}.json`);
-        if (r.ok) { t = await r.json(); return; }
-      } catch {}
-    }
-  }
-  await loadTranslations();
+  /* ── Strings ──────────────────────────────────────────────── */
+  const t = {
+    deviceName: 'Device Name',   connection: 'Connection Mode',
+    cloud: 'Cloud',              local: 'Local',
+    email: 'Email',              password: 'Password',      region: 'Region',
+    ip: 'IP Address',            mac: 'MAC Address',
+    fan: 'Fan',                  sleep: 'Sleep',            display: 'Display',
+    health: 'Health',            clean: 'Clean',            eco: 'Eco',
+    comfWind: 'Comf. Wind',
+    tempStep: 'Temperature Step', pollInterval: 'Poll Interval (seconds)',
+    addDevice: 'Add Device',     remove: 'Remove',
+    hybrid: 'Hybrid',            cloudCredentials: 'Cloud Credentials',
+    fetching: 'Fetching…',       devicesFound: 'devices found',
+    fetchFailed: 'Fetch failed', fetch: 'Fetch',
+    cloudDevices: 'Cloud Devices', localDevices: 'Local Devices',
+  };
 
   /* ── Config ───────────────────────────────────────────────── */
   let config = {};

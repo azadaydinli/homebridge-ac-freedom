@@ -37,6 +37,7 @@ A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air con
 - **Multi-device** — configure as many ACs as needed
 - **Custom config UI** — built-in Homebridge UI with Fetch Devices button
 - Homebridge v1 & v2 compatible
+- English UI
 
 ---
 
