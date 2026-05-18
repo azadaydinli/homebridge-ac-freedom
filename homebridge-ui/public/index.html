@@ -16,7 +16,6 @@
     --input-bg:      #ffffff;
     --bg:            #ffffff;
     --danger:        #dc2626;
-    --danger-hover:  #b91c1c;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -36,7 +35,6 @@
       --input-bg:      rgba(255,255,255,0.08);
       --bg:            transparent;
       --danger:        #f87171;
-      --danger-hover:  #ef4444;
     }
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,9 +44,8 @@
   }
 
   /* ── Form elements ── */
-  .fg { margin-bottom: 14px; }
+  .fg { margin-bottom: 12px; }
   label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: var(--text); }
-  .hint { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; line-height: 1.4; }
   input[type="text"], input[type="number"], input[type="email"], input[type="password"], select {
     width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border);
     border-radius: 6px; font-size: 13px; background: var(--input-bg);
@@ -63,13 +60,13 @@
     font-size: 12px; font-weight: 600; transition: opacity .15s, background .15s;
   }
   .btn:hover { opacity: .85; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-outline  { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-  .btn-outline:hover { background: var(--accent); color: #fff; opacity: 1; }
-  .btn-danger   { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
-  .btn-danger:hover { background: var(--danger); color: #fff; opacity: 1; }
-  .btn-sm { padding: 4px 10px; font-size: 11px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-danger  { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover  { background: var(--danger); color: #fff; opacity: 1; }
+  .btn-local   { background: transparent; color: var(--local); border: 1px solid var(--local); }
+  .btn-local:hover   { background: var(--local); color: #fff; opacity: 1; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
 
   /* ── Cloud credentials card ── */
   .creds-card {
@@ -81,63 +78,62 @@
     font-size: 13px; font-weight: 700; color: var(--accent);
     border-bottom: 1px solid var(--accent-border);
   }
-  .creds-body { padding: 16px 18px 18px; }
+  .creds-body { padding: 14px 18px 16px; }
+  .fetch-row  { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .fetch-status { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+  .fetch-status.ok  { color: var(--local); }
+  .fetch-status.err { color: var(--danger); }
 
-  /* ── Fetch row ── */
-  .fetch-row {
-    display: flex; align-items: center; gap: 10px; margin-top: 14px;
-    flex-wrap: wrap;
+  /* ── Section header ── */
+  .section-hd {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .8px; color: var(--text-muted);
+    margin: 16px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
   }
-  .fetch-status {
-    font-size: 12px; font-weight: 500; color: var(--text-muted);
-  }
-  .fetch-status.ok   { color: var(--local); }
-  .fetch-status.err  { color: var(--danger); }
-
-  /* ── Device card ── */
-  .device-card {
-    border: 1.5px solid var(--accent-border); border-radius: 12px;
-    margin-bottom: 16px; background: var(--accent-light); overflow: hidden;
-  }
-  .device-card.hybrid-card { border-color: var(--hybrid-border); background: var(--hybrid-light); }
-  .device-card.local-card  { border-color: var(--local-border);  background: var(--local-light);  }
-
-  .device-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 13px 18px; cursor: pointer; user-select: none;
-  }
-  .device-header:hover { opacity: .88; }
-  .device-header-left { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
-  .chevron { font-size: 11px; color: var(--text-muted); transition: transform .2s; flex-shrink: 0; }
-  .chevron.open { transform: rotate(90deg); }
-  .dev-name { font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .device-card.hybrid-card .dev-name { color: var(--hybrid); }
-  .device-card.local-card  .dev-name { color: var(--local);  }
-
-  .conn-badge {
-    font-size: 10px; font-weight: 700; letter-spacing: .5px;
-    padding: 2px 8px; border-radius: 20px; flex-shrink: 0; text-transform: uppercase;
-  }
-  .conn-badge.hybrid { background: var(--hybrid-light); color: var(--hybrid); border: 1px solid var(--hybrid-border); }
-  .conn-badge.local  { background: var(--local-light);  color: var(--local);  border: 1px solid var(--local-border);  }
-  .dev-meta { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-
-  .device-body { padding: 16px 18px 20px; border-top: 1px solid var(--accent-border); }
-  .device-card.hybrid-card .device-body { border-color: var(--hybrid-border); }
-  .device-card.local-card  .device-body { border-color: var(--local-border);  }
-  .device-body.collapsed { display: none; }
+  .section-hd.local-hd { color: var(--local); border-bottom-color: var(--local-border); }
 
   /* ── Grid layouts ── */
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
-  /* ── Section divider ── */
-  .section-hd {
-    font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .8px; color: var(--text-muted);
-    margin: 18px 0 10px; padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
+  /* ── Device card ── */
+  .device-card {
+    border: 1.5px solid var(--accent-border); border-radius: 12px;
+    margin-bottom: 12px; background: var(--accent-light); overflow: hidden;
   }
+  .device-card.hybrid-card { border-color: var(--hybrid-border); background: var(--hybrid-light); }
+  .device-card.local-card  { border-color: var(--local-border);  background: var(--local-light); }
+
+  .device-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 16px; cursor: pointer; user-select: none;
+  }
+  .device-header:hover { opacity: .88; }
+  .device-header-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .chevron { font-size: 11px; color: var(--text-muted); transition: transform .2s; flex-shrink: 0; }
+  .chevron.open { transform: rotate(90deg); }
+  .dev-name { font-size: 14px; font-weight: 700; color: var(--accent);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .device-card.hybrid-card .dev-name { color: var(--hybrid); }
+  .device-card.local-card  .dev-name { color: var(--local);  }
+
+  .conn-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: .5px;
+    padding: 2px 7px; border-radius: 20px; flex-shrink: 0; text-transform: uppercase;
+  }
+  .conn-badge.cloud  { background: var(--accent-light);  color: var(--accent);  border: 1px solid var(--accent-border); }
+  .conn-badge.hybrid { background: var(--hybrid-light); color: var(--hybrid); border: 1px solid var(--hybrid-border); }
+  .conn-badge.local  { background: var(--local-light);  color: var(--local);  border: 1px solid var(--local-border); }
+  .dev-meta { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+  .device-body {
+    padding: 14px 16px 18px;
+    border-top: 1px solid var(--accent-border);
+  }
+  .device-card.hybrid-card .device-body { border-color: var(--hybrid-border); }
+  .device-card.local-card  .device-body { border-color: var(--local-border); }
+  .device-body.collapsed { display: none; }
 
   /* ── Connection toggle (segmented) ── */
   .conn-toggle {
@@ -145,87 +141,79 @@
     overflow: hidden; height: 36px;
   }
   .conn-btn {
-    flex: 1; padding: 0 12px; border: none;
-    background: transparent; cursor: pointer;
+    flex: 1; padding: 0 12px; border: none; background: transparent; cursor: pointer;
     font-size: 13px; font-weight: 600; color: var(--text-muted);
-    display: flex; align-items: center; justify-content: center; gap: 6px;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
     transition: background .15s, color .15s;
   }
   .conn-btn + .conn-btn { border-left: 1px solid var(--border); }
-  .conn-btn .icon { font-size: 14px; line-height: 1; }
+  .conn-btn.active-cloud  { background: var(--accent-light);  color: var(--accent);  }
   .conn-btn.active-hybrid { background: var(--hybrid-light); color: var(--hybrid); }
-  .conn-btn.active-local  { background: var(--local-light);  color: var(--local);  }
+
+  /* ── Features toggle row ── */
+  .toggle-row { display: flex; gap: 6px; }
+  .toggle-item {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 4px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--card-bg);
+    cursor: pointer; font-size: 11px; font-weight: 500; color: var(--text);
+    white-space: nowrap; transition: border-color .15s, background .15s;
+  }
+  .toggle-item:hover { border-color: var(--accent); }
+  .toggle-item input[type="checkbox"] {
+    width: 13px; height: 13px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer;
+  }
+  .toggle-item.checked { border-color: var(--accent-border); background: var(--accent-light); }
 
   /* ── Fieldset ── */
   .fieldset {
     border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px 14px; margin-top: 4px;
+    padding: 12px 12px 10px;
   }
 
-  /* ── Toggle grid (checkboxes) ── */
-  .toggle-rows { display: flex; flex-direction: column; gap: 8px; }
-  .toggle-row  { display: flex; gap: 8px; }
-  .toggle-item {
-    flex: 1;
-    display: flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 8px 10px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--card-bg);
-    cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text);
-    transition: border-color .15s, background .15s;
-  }
-  .toggle-item:hover { border-color: var(--accent); }
-  .toggle-item input[type="checkbox"] {
-    width: 15px; height: 15px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer;
-  }
-  .toggle-item.checked { border-color: var(--accent-border); background: var(--accent-light); }
-
-  /* ── Actions row ── */
-  .actions { margin-top: 18px; display: flex; gap: 10px; }
+  /* ── Actions ── */
+  .actions { margin-top: 14px; }
 </style>
 
 <div id="app"></div>
 
 <script>
 (async () => {
-  /* ── Global error safety net ───────────────────────────────── */
+  /* ── Error safety net ─────────────────────────────────────── */
   window.addEventListener('error', ev => {
     const app = document.getElementById('app');
-    if (app && !app.innerHTML) {
-      app.innerHTML = `<div style="color:#dc2626;padding:16px;font-family:monospace;font-size:12px">
-        UI error: ${ev.message || ev}<br>Check browser console for details.
+    if (app && !app.innerHTML.trim()) {
+      app.innerHTML = `<div style="color:#dc2626;padding:16px;font-size:12px">
+        UI error: ${ev.message}<br>Check browser console.
       </div>`;
     }
   });
 
-  /* ── Translations ──────────────────────────────────────────── */
+  /* ── i18n ─────────────────────────────────────────────────── */
   let t = {};
   async function loadTranslations() {
     let lang = 'en';
     try { lang = await homebridge.i18nCurrentLang(); } catch {}
-    const tryLangs = [lang, lang.split('-')[0], 'en'];
-    for (const l of tryLangs) {
+    for (const l of [lang, lang.split('-')[0], 'en']) {
       try {
-        const res = await fetch(`./i18n/${l}.json`);
-        if (res.ok) { t = await res.json(); return; }
+        const r = await fetch(`./i18n/${l}.json`);
+        if (r.ok) { t = await r.json(); return; }
       } catch {}
     }
-    try { const res = await fetch('./i18n/en.json'); t = await res.json(); } catch {}
   }
   await loadTranslations();
 
-  /* ── Config ────────────────────────────────────────────────── */
+  /* ── Config ───────────────────────────────────────────────── */
   let config = {};
-  try {
-    const cfgs = await homebridge.getPluginConfig();
-    config = cfgs[0] || {};
-  } catch {}
+  try { const c = await homebridge.getPluginConfig(); config = c[0] || {}; } catch {}
   if (!config.devices) config.devices = [];
   if (!config.cloud)   config.cloud   = {};
 
   const expanded = new Set();
   const app = document.getElementById('app');
 
-  /* ── Helpers ───────────────────────────────────────────────── */
+  /* ── Helpers ──────────────────────────────────────────────── */
   function esc(s) {
     const d = document.createElement('div');
     d.textContent = String(s ?? '');
@@ -234,75 +222,69 @@
   function bool(v, def = true) { return v === undefined ? def : !!v; }
   async function save() { await homebridge.updatePluginConfig([config]); }
 
-  /* ── Render ────────────────────────────────────────────────── */
-  function render() {
-    app.innerHTML = `
-      <!-- Cloud credentials card -->
-      <div class="creds-card">
-        <div class="creds-header">☁️ ${t.cloudCredentials||'Cloud Credentials'}</div>
-        <div class="creds-body">
-          <div class="row-3">
-            <div class="fg" style="margin-bottom:0">
-              <label>${t.email||'Email'}</label>
-              <input type="email" id="cloud-email" value="${esc(config.cloud.email||'')}" placeholder="user@example.com">
-            </div>
-            <div class="fg" style="margin-bottom:0">
-              <label>${t.password||'Password'}</label>
-              <input type="password" id="cloud-password" value="${esc(config.cloud.password||'')}">
-            </div>
-            <div class="fg" style="margin-bottom:0">
-              <label>${t.region||'Region'}</label>
-              <select id="cloud-region">
-                ${['eu','usa','cn','rus'].map(r =>
-                  `<option value="${r}" ${(config.cloud.region||'eu')===r?'selected':''}>${
-                    {eu:t.regionEu||'Europe',usa:t.regionUsa||'USA',cn:t.regionCn||'China',rus:t.regionRus||'Russia'}[r]
-                  }</option>`
-                ).join('')}
-              </select>
-            </div>
-          </div>
-          <div class="fetch-row">
-            <button class="btn btn-primary" id="btn-fetch">🔍 ${t.fetchDevices||'Fetch Devices'}</button>
-            <span class="fetch-status" id="fetch-status"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Devices -->
-      <div class="section-hd" style="margin-top:4px">${t.devices||'Devices'}</div>
-      <div id="device-list">
-        ${config.devices.map((d, i) => renderDevice(d, i)).join('')}
-      </div>
-      <div class="actions">
-        <button class="btn btn-outline" id="btn-add">+ ${t.addDevice||'Add Device'}</button>
-      </div>
+  function featToggles(d, i) {
+    const presets = d.presets || {};
+    const feats = [
+      { key: 'showFan',      label: t.fan||'Fan',             val: bool(d.showFan) },
+      { key: 'sleep',        label: t.sleep||'Sleep',          val: bool(presets.sleep),   preset: true },
+      { key: 'showDisplay',  label: t.display||'Display',      val: bool(d.showDisplay) },
+      { key: 'health',       label: t.health||'Health',        val: bool(presets.health),  preset: true },
+      { key: 'clean',        label: t.clean||'Clean',          val: bool(presets.clean),   preset: true },
+      { key: 'eco',          label: t.eco||'Eco',              val: bool(presets.eco),     preset: true },
+      { key: 'showComfWind', label: t.comfWind||'Comf. Wind',  val: bool(d.showComfWind) },
+    ];
+    return `
+    <div class="toggle-row">
+      ${feats.map(f => `
+        <label class="toggle-item ${f.val ? 'checked' : ''}">
+          <input type="checkbox" class="feat-cb"
+            data-i="${i}" data-k="${f.key}" data-preset="${f.preset||false}"
+            ${f.val ? 'checked' : ''}>
+          ${f.label}
+        </label>
+      `).join('')}
+    </div>
     `;
-    bindEvents();
   }
 
-  function renderDevice(d, i) {
-    const isOpen   = expanded.has(i);
-    const name     = d.name || `Device #${i + 1}`;
-    const conn     = d.connection === 'cloud' ? 'hybrid' : (d.connection || 'hybrid');
-    const isHybrid = conn === 'hybrid';
-    const local    = d.local  || {};
-    const presets  = d.presets || {};
-    const poll     = d.pollInterval || 30;
-    const step     = d.tempStep !== undefined ? d.tempStep : 0.5;
-    const cardClass= isHybrid ? 'hybrid-card' : 'local-card';
-    const badgeLabel = isHybrid ? (t.hybrid||'Hybrid') : (t.localOnly||'Local Only');
+  function settingsRow(d, i) {
+    const step = d.tempStep !== undefined ? d.tempStep : 0.5;
+    const poll = d.pollInterval || 30;
+    return `
+      <div class="fieldset" style="margin-bottom:12px">
+        <div class="row-2">
+          <div class="fg" style="margin-bottom:0">
+            <label>${t.tempStep||'Temperature Step'}</label>
+            <select class="d-field" data-i="${i}" data-f="tempStep">
+              <option value="0.5" ${step==0.5?'selected':''}>0.5 °C</option>
+              <option value="1"   ${step==1  ?'selected':''}>1.0 °C</option>
+            </select>
+          </div>
+          <div class="fg" style="margin-bottom:0">
+            <label>${t.pollInterval||'Poll Interval'}</label>
+            <select class="d-field" data-i="${i}" data-f="pollInterval">
+              <option value="5"  ${poll==5 ?'selected':''}>5 s</option>
+              <option value="10" ${poll==10?'selected':''}>10 s</option>
+              <option value="20" ${poll==20?'selected':''}>20 s</option>
+              <option value="30" ${poll==30?'selected':''}>30 s</option>
+              <option value="60" ${poll==60?'selected':''}>60 s</option>
+            </select>
+          </div>
+        </div>
+      </div>`;
+  }
 
-    const featRow1 = [
-      { key: 'showFan',     label: `🌀 ${t.fan||'Fan'}`,        val: bool(d.showFan)         },
-      { key: 'sleep',       label: `😴 ${t.sleep||'Sleep'}`,      val: bool(presets.sleep),  preset: true },
-      { key: 'showDisplay', label: `💡 ${t.display||'Display'}`,    val: bool(d.showDisplay)     },
-    ];
-    const featRow2 = [
-      { key: 'health',      label: `🌿 ${t.health||'Health'}`,       val: bool(presets.health), preset: true },
-      { key: 'clean',       label: `✨ ${t.clean||'Clean'}`,          val: bool(presets.clean),  preset: true },
-      { key: 'eco',         label: `🍃 ${t.eco||'Eco'}`,            val: bool(presets.eco),    preset: true },
-      { key: 'showComfWind',label: `💨 ${t.comfWind||'Comf. Wind'}`, val: bool(d.showComfWind)   },
-    ];
+  /* ── Render cloud device card ─────────────────────────────── */
+  function renderCloudDevice(d, i) {
+    const isOpen    = expanded.has(i);
+    const name      = d.name || `Device #${i + 1}`;
+    const conn      = (d.connection === 'local' || !d.connection) ? 'cloud' : d.connection;
+    const isHybrid  = conn === 'hybrid';
+    const local     = d.local || {};
+    const step      = d.tempStep !== undefined ? d.tempStep : 0.5;
+    const poll      = d.pollInterval || 30;
+    const cardClass = isHybrid ? 'hybrid-card' : '';
+    const badge     = isHybrid ? (t.hybrid||'Hybrid') : (t.cloud||'Cloud');
 
     return `
       <div class="device-card ${cardClass}" id="dev-card-${i}">
@@ -310,115 +292,184 @@
           <div class="device-header-left">
             <span class="chevron ${isOpen ? 'open' : ''}">&#9654;</span>
             <span class="dev-name">${esc(name)}</span>
-            <span class="conn-badge ${conn}">${badgeLabel}</span>
-            ${!isOpen ? `<span class="dev-meta">${poll}s · ${step}°C</span>` : ''}
           </div>
-          <div style="flex-shrink:0; margin-left:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:8px">
+            <span class="conn-badge ${conn}">${badge}</span>
             <button class="btn btn-danger btn-sm btn-remove" data-i="${i}">${t.remove||'Remove'}</button>
           </div>
         </div>
 
         <div class="device-body ${isOpen ? '' : 'collapsed'}">
-
           <!-- Name + Connection -->
-          <div class="row-2">
-            <div class="fg">
-              <label>${t.deviceName||'Device Name'}</label>
-              <input type="text" class="d-field" data-i="${i}" data-f="name" value="${esc(d.name||'')}">
-            </div>
-            <div class="fg">
-              <label>${t.connection||'Connection'}</label>
-              <div class="conn-toggle">
-                <button class="conn-btn ${isHybrid ? 'active-hybrid' : ''} conn-pick" data-i="${i}" data-v="hybrid">
-                  <span class="icon">🔀</span>${t.hybrid||'Hybrid'}
-                </button>
-                <button class="conn-btn ${!isHybrid ? 'active-local' : ''} conn-pick" data-i="${i}" data-v="local">
-                  <span class="icon">📡</span>${t.localOnly||'Local Only'}
-                </button>
+          <div class="fieldset" style="margin-bottom:12px">
+            <div class="row-2">
+              <div class="fg" style="margin-bottom:0">
+                <label>${t.deviceName||'Device Name'}</label>
+                <input type="text" class="d-field" data-i="${i}" data-f="name"
+                  value="${esc(d.name||'')}">
+              </div>
+              <div class="fg" style="margin-bottom:0">
+                <label>${t.connection||'Connection'}</label>
+                <div class="conn-toggle">
+                  <button class="conn-btn ${!isHybrid ? 'active-cloud' : ''} conn-pick"
+                    data-i="${i}" data-v="cloud">
+                    ☁️ ${t.cloud||'Cloud'}
+                  </button>
+                  <button class="conn-btn ${isHybrid ? 'active-hybrid' : ''} conn-pick"
+                    data-i="${i}" data-v="hybrid">
+                    🔀 ${t.hybrid||'Hybrid'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Hybrid: endpoint ID + optional local override -->
+          <!-- IP + MAC (Hybrid only) -->
           <div id="hybrid-sec-${i}" style="${isHybrid ? '' : 'display:none'}">
-            <div class="fieldset">
-              <div class="fg">
-                <label>${t.endpointId||'Device ID'} <span style="font-weight:400;color:var(--text-muted)">(${t.deviceIdOptional||'optional'})</span></label>
-                <input type="text" class="h-field" data-i="${i}" data-f="endpointId" value="${esc(d.endpointId||'')}" placeholder="auto-detect">
-              </div>
-              <div class="section-hd" style="margin-top:4px">📡 ${t.localOverride||'Local Override'} <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted)">(${t.deviceIdOptional||'optional'})</span></div>
-              <div class="row-2" style="margin-top:8px">
-                <div class="fg" style="margin-bottom:0">
-                  <label>${t.ip||'IP Address'}</label>
-                  <input type="text" class="l-field" data-i="${i}" data-f="ip" value="${esc(local.ip||'')}" placeholder="192.168.1.100">
-                </div>
-                <div class="fg" style="margin-bottom:0">
-                  <label>${t.mac||'MAC Address'}</label>
-                  <input type="text" class="l-field" data-i="${i}" data-f="mac" value="${esc(local.mac||'')}" placeholder="AA:BB:CC:DD:EE:FF">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Local Only: required IP + MAC -->
-          <div id="local-sec-${i}" style="${!isHybrid ? '' : 'display:none'}">
-            <div class="fieldset" style="margin-top:4px">
+            <div class="fieldset" style="margin-bottom:12px">
               <div class="row-2">
                 <div class="fg" style="margin-bottom:0">
                   <label>${t.ip||'IP Address'}</label>
-                  <input type="text" class="l-field" data-i="${i}" data-f="ip" value="${esc(local.ip||'')}" placeholder="192.168.1.100">
+                  <input type="text" class="l-field" data-i="${i}" data-f="ip"
+                    value="${esc(local.ip||'')}" placeholder="192.168.1.100">
                 </div>
                 <div class="fg" style="margin-bottom:0">
                   <label>${t.mac||'MAC Address'}</label>
-                  <input type="text" class="l-field" data-i="${i}" data-f="mac" value="${esc(local.mac||'')}" placeholder="AA:BB:CC:DD:EE:FF">
+                  <input type="text" class="l-field" data-i="${i}" data-f="mac"
+                    value="${esc(local.mac||'')}" placeholder="AA:BB:CC:DD:EE:FF">
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Features -->
-          <div class="section-hd">${t.features||'Features'}</div>
-          <div class="toggle-rows">
-            <div class="toggle-row">
-              ${featRow1.map(f => `
-                <label class="toggle-item ${f.val ? 'checked' : ''}">
-                  <input type="checkbox" class="feat-cb" data-i="${i}" data-k="${f.key}" data-preset="${f.preset||false}" ${f.val ? 'checked' : ''}>
-                  ${f.label}
-                </label>
-              `).join('')}
+          ${settingsRow(d, i)}
+          ${featToggles(d, i)}
+        </div>
+      </div>`;
+  }
+
+  /* ── Render local-only device card ───────────────────────── */
+  function renderLocalDevice(d, i) {
+    const isOpen = expanded.has(i);
+    const name   = d.name || `Local #${i + 1}`;
+    const local  = d.local || {};
+    const step   = d.tempStep !== undefined ? d.tempStep : 0.5;
+    const poll   = d.pollInterval || 30;
+
+    return `
+      <div class="device-card" id="dev-card-${i}">
+        <div class="device-header device-toggle" data-i="${i}">
+          <div class="device-header-left">
+            <span class="chevron ${isOpen ? 'open' : ''}">&#9654;</span>
+            <span class="dev-name">${esc(name)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:8px">
+            <span class="conn-badge cloud">${t.local||'Local'}</span>
+            <button class="btn btn-danger btn-sm btn-remove" data-i="${i}">${t.remove||'Remove'}</button>
+          </div>
+        </div>
+
+        <div class="device-body ${isOpen ? '' : 'collapsed'}">
+          <div class="fieldset" style="margin-bottom:12px">
+            <div class="fg" style="margin-bottom:0">
+              <label>${t.deviceName||'Device Name'}</label>
+              <input type="text" class="d-field" data-i="${i}" data-f="name"
+                value="${esc(d.name||'')}">
             </div>
-            <div class="toggle-row">
-              ${featRow2.map(f => `
-                <label class="toggle-item ${f.val ? 'checked' : ''}">
-                  <input type="checkbox" class="feat-cb" data-i="${i}" data-k="${f.key}" data-preset="${f.preset||false}" ${f.val ? 'checked' : ''}>
-                  ${f.label}
-                </label>
-              `).join('')}
+          </div>
+          <div class="fieldset" style="margin-bottom:12px">
+            <div class="row-2">
+              <div class="fg" style="margin-bottom:0">
+                <label>${t.ip||'IP Address'}</label>
+                <input type="text" class="l-field" data-i="${i}" data-f="ip"
+                  value="${esc(local.ip||'')}" placeholder="192.168.1.100">
+              </div>
+              <div class="fg" style="margin-bottom:0">
+                <label>${t.mac||'MAC Address'}</label>
+                <input type="text" class="l-field" data-i="${i}" data-f="mac"
+                  value="${esc(local.mac||'')}" placeholder="AA:BB:CC:DD:EE:FF">
+              </div>
             </div>
           </div>
 
-          <!-- Settings -->
-          <div class="section-hd">${t.settings||'Settings'}</div>
-          <div class="row-2">
+          ${settingsRow(d, i)}
+          ${featToggles(d, i)}
+        </div>
+      </div>`;
+  }
+
+  /* ── Main render ──────────────────────────────────────────── */
+  function render() {
+    const cloudDevs = config.devices
+      .map((d, i) => ({ d, i }))
+      .filter(({ d }) => d.connection !== 'local');
+    const localDevs = config.devices
+      .map((d, i) => ({ d, i }))
+      .filter(({ d }) => d.connection === 'local');
+
+    app.innerHTML = `
+      <!-- Cloud Credentials -->
+      <div class="creds-card">
+        <div class="creds-header">☁️ ${t.cloudCredentials||'Cloud Credentials'}</div>
+        <div class="creds-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 140px 100px;gap:8px;align-items:flex-end">
             <div class="fg" style="margin-bottom:0">
-              <label>${t.tempStep||'Temperature Step'}</label>
-              <select class="d-field" data-i="${i}" data-f="tempStep">
-                <option value="0.5" ${step==0.5?'selected':''}>0.5 °C</option>
-                <option value="1"   ${step==1  ?'selected':''}>1.0 °C</option>
+              <label>${t.email||'Email'}</label>
+              <input type="email" id="cloud-email"
+                value="${esc(config.cloud.email||'')}" placeholder="user@example.com">
+            </div>
+            <div class="fg" style="margin-bottom:0">
+              <label>${t.password||'Password'}</label>
+              <input type="password" id="cloud-password"
+                value="${esc(config.cloud.password||'')}">
+            </div>
+            <div class="fg" style="margin-bottom:0">
+              <label>${t.region||'Region'}</label>
+              <select id="cloud-region">
+                ${['eu','usa','cn','rus'].map(r =>
+                  `<option value="${r}" ${(config.cloud.region||'eu')===r?'selected':''}>
+                    ${{eu:'Europe',usa:'USA',cn:'China',rus:'Russia'}[r]}
+                  </option>`
+                ).join('')}
               </select>
             </div>
             <div class="fg" style="margin-bottom:0">
-              <label>${t.pollInterval||'Poll Interval (seconds)'}</label>
-              <input type="number" class="d-field" data-i="${i}" data-f="pollInterval" min="5" max="300" value="${poll}">
+              <button class="btn btn-primary" id="btn-fetch" style="height:36px;width:100%;white-space:nowrap">
+                🔍 ${t.fetch||'Fetch'}
+              </button>
             </div>
           </div>
-
+          <span class="fetch-status" id="fetch-status" style="display:block;margin-top:6px"></span>
         </div>
       </div>
+
+      <!-- Cloud Devices -->
+      ${cloudDevs.length ? `
+        <div class="section-hd" style="margin-top:8px;text-align:center;border-bottom:none;padding-bottom:0">
+          ${t.cloudDevices||'Cloud Devices'}
+        </div>` : ''}
+      <div id="cloud-device-list">
+        ${cloudDevs.map(({ d, i }) => renderCloudDevice(d, i)).join('')}
+      </div>
+
+      <!-- Local Devices -->
+      <div class="section-hd" style="margin-top:20px;text-align:center;border-bottom:none;padding-bottom:0">
+        ${t.localDevices||'Local Devices'}
+      </div>
+      <div id="local-device-list">
+        ${localDevs.map(({ d, i }) => renderLocalDevice(d, i)).join('')}
+      </div>
+      <div class="fieldset" style="margin-top:10px">
+        <button class="btn btn-primary" id="btn-add-local"
+          style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;height:36px">
+          + ${t.addDevice||'Add Device'}
+        </button>
+      </div>
     `;
+    bindEvents();
   }
 
-  /* ── Event binding ─────────────────────────────────────────── */
+  /* ── Event binding ────────────────────────────────────────── */
   function bindEvents() {
     /* Collapse toggle */
     document.querySelectorAll('.device-toggle').forEach(el => {
@@ -430,7 +481,7 @@
       });
     });
 
-    /* Cloud credential fields */
+    /* Cloud credentials */
     document.getElementById('cloud-email').addEventListener('change', e => {
       config.cloud.email = e.target.value; save();
     });
@@ -441,7 +492,7 @@
       config.cloud.region = e.target.value; save();
     });
 
-    /* Fetch Devices button */
+    /* Fetch Devices */
     document.getElementById('btn-fetch').addEventListener('click', async () => {
       const btn    = document.getElementById('btn-fetch');
       const status = document.getElementById('fetch-status');
@@ -451,7 +502,7 @@
 
       if (!email || !password) {
         status.className = 'fetch-status err';
-        status.textContent = '⚠️ ' + (t.emailHint||'Enter email and password first');
+        status.textContent = '⚠️ Enter email and password first';
         return;
       }
 
@@ -461,28 +512,27 @@
       status.textContent = '';
 
       try {
-        const res = await homebridge.request('/fetchDevices', { email, password, region });
+        const res     = await homebridge.request('/fetchDevices', { email, password, region });
         const fetched = res.devices || [];
 
-        // Save credentials
         config.cloud.email    = email;
         config.cloud.password = password;
         config.cloud.region   = region;
 
-        // Merge fetched devices into config:
-        // - new devices get added as hybrid
-        // - existing devices (matched by endpointId) are kept as-is
-        const existingIds = new Set(config.devices.map(d => d.endpointId).filter(Boolean));
+        // Add new devices (matched by endpointId); preserve existing
+        const existingIds = new Set(
+          config.devices.map(d => d.endpointId).filter(Boolean)
+        );
         let added = 0;
         for (const fd of fetched) {
           if (!existingIds.has(fd.endpointId)) {
             config.devices.push({
-              name: fd.name,
-              connection: 'hybrid',
+              name:       fd.name,
+              connection: 'cloud',
               endpointId: fd.endpointId,
-              local: { ip: '', mac: '' },
-              presets: { sleep: true, health: true, eco: true, clean: true },
-              showFan: true, showComfWind: true, showDisplay: true,
+              local:      { ip: '', mac: '' },
+              presets:    { sleep: true, health: false, eco: false, clean: false },
+              showFan: true, showComfWind: false, showDisplay: false,
               tempStep: 0.5, pollInterval: 30,
             });
             expanded.add(config.devices.length - 1);
@@ -491,8 +541,9 @@
         }
 
         status.className = 'fetch-status ok';
-        status.textContent = `✓ ${fetched.length} ${t.devicesFound||'devices found'}` +
-          (added ? ` (+${added} ${t.addDevice||'added'})` : '');
+        status.textContent =
+          `✓ ${fetched.length} ${t.devicesFound||'devices found'}` +
+          (added ? ` (+${added})` : '');
         save();
         render();
       } catch (err) {
@@ -500,19 +551,18 @@
         status.textContent = `✗ ${t.fetchFailed||'Fetch failed'}: ${err.message || err}`;
       } finally {
         const b = document.getElementById('btn-fetch');
-        if (b) { b.disabled = false; b.textContent = `🔍 ${t.fetchDevices||'Fetch Devices'}`; }
+        if (b) { b.disabled = false; b.textContent = `🔍 ${t.fetch||'Fetch'}`; }
       }
     });
 
-    /* Add device (manual) */
-    document.getElementById('btn-add').addEventListener('click', () => {
+    /* Add Local Device */
+    document.getElementById('btn-add-local').addEventListener('click', () => {
       const i = config.devices.length;
       config.devices.push({
-        name: '', connection: 'hybrid',
-        endpointId: '',
+        name: '', connection: 'local',
         local: { ip: '', mac: '' },
-        presets: { sleep: true, health: true, eco: true, clean: true },
-        showFan: true, showComfWind: true, showDisplay: true,
+        presets: { sleep: true, health: false, eco: false, clean: false },
+        showFan: true, showComfWind: false, showDisplay: false,
         tempStep: 0.5, pollInterval: 30,
       });
       expanded.add(i);
@@ -526,13 +576,16 @@
         const i = +btn.dataset.i;
         config.devices.splice(i, 1);
         const newExp = new Set();
-        expanded.forEach(v => { if (v < i) newExp.add(v); else if (v > i) newExp.add(v - 1); });
+        expanded.forEach(v => {
+          if (v < i) newExp.add(v);
+          else if (v > i) newExp.add(v - 1);
+        });
         expanded.clear(); newExp.forEach(v => expanded.add(v));
         render(); save();
       });
     });
 
-    /* Connection toggle */
+    /* Connection toggle (cloud devices only: cloud | hybrid) */
     document.querySelectorAll('.conn-pick').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
@@ -542,11 +595,13 @@
       });
     });
 
-    /* Device-level string/number fields */
+    /* Device-level fields (name, tempStep, pollInterval) */
     document.querySelectorAll('.d-field').forEach(el => {
       el.addEventListener('change', () => {
         const i = +el.dataset.i, f = el.dataset.f;
-        config.devices[i][f] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+        config.devices[i][f] = (f === 'tempStep')    ? (parseFloat(el.value) || 0.5)
+          : (f === 'pollInterval') ? (parseInt(el.value)   || 30)
+          : el.value;
         save();
       });
       el.addEventListener('input', () => {
@@ -557,16 +612,7 @@
       });
     });
 
-    /* Hybrid endpoint ID field */
-    document.querySelectorAll('.h-field').forEach(el => {
-      el.addEventListener('change', () => {
-        const i = +el.dataset.i, f = el.dataset.f;
-        config.devices[i][f] = el.value;
-        save();
-      });
-    });
-
-    /* Local fields */
+    /* Local IP / MAC fields */
     document.querySelectorAll('.l-field').forEach(el => {
       el.addEventListener('change', () => {
         const i = +el.dataset.i, f = el.dataset.f;
@@ -580,7 +626,8 @@
     document.querySelectorAll('.feat-cb').forEach(cb => {
       cb.closest('.toggle-item').classList.toggle('checked', cb.checked);
       cb.addEventListener('change', () => {
-        const i = +cb.dataset.i, k = cb.dataset.k, isPreset = cb.dataset.preset === 'true';
+        const i = +cb.dataset.i, k = cb.dataset.k;
+        const isPreset = cb.dataset.preset === 'true';
         if (isPreset) {
           if (!config.devices[i].presets) config.devices[i].presets = {};
           config.devices[i].presets[k] = cb.checked;

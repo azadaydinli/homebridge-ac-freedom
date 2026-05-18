@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.3.1
+
+- **Config UI overhaul** — complete redesign of the custom Homebridge UI
+  - Cloud credentials (Email, Password, Region, Fetch) all on one row
+  - **Cloud Devices** section appears only after a successful Fetch
+  - **Local Devices** section with full-width Add Device button
+  - Device cards: Name + Connection, IP + MAC, Temperature Step + Poll Interval, and Features all wrapped in consistent fieldset style
+  - Connection toggle: **Cloud** / **Hybrid** (Hybrid reveals IP + MAC fields)
+  - Features row: Fan · Sleep · Display · Health · Clean · Eco · Comf. Wind (all 7 in one line, no icons)
+  - Poll Interval changed from free input to fixed dropdown: 5 / 10 / 20 / 30 / 60 s
+  - New device defaults: only **Fan** and **Sleep** enabled out of the box
+  - Section headers centered, no underline borders
+  - Badge (Cloud / Hybrid / Local) moved to the right of the card header next to Remove
+
+> **Upgrading from v2.2?** HomeKit accessories and automations are preserved (UUID is name-based). However, the new UI uses platform-level cloud credentials — open the plugin settings, enter your email/password and press **Fetch** to rediscover your devices.
+
 ## 2.3.0
 
 - **New architecture: Hybrid + Local Only connection modes**
