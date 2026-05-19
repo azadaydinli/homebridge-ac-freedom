@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.3.5
+
+- **Fix double beep on power-on** — `TargetHeaterCoolerState` command is suppressed when fired within 200 ms of a power command; mode is already included in `sendPower`
+- **Fix device turns back on after power-off** — `sendPower(false)` no longer sends a separate sleep or fan command; UI reset is local-only, no extra cloud calls
+- **Fix fan not resetting on device** — `sendPower(false)` now includes `fanSpeed=0` in the same API call, so the device restores AUTO fan on next power-on
+- **Fix stale poll overriding command** — poll is suppressed for 5 s after any successful user command; a failed command no longer blocks state refresh
+- **Fix mode command turning device on** — `sendMode` uses `state.power` instead of hardcoded `power=1`; changing mode while AC is off no longer wakes the device
+- **Fix preset switches showing ON when AC is off** — `onGet` and `updateCharacteristics` now gate preset, fan and comfwind values on `state.power`
+- **Fix temperature step** — temperature is snapped in `onSet` and pushed back to HomeKit immediately; corrects slider behaviour even when HomeKit has a cached `minStep`
+- **Fix temperature out-of-range HAP error** — invalid temperature readings from cloud (e.g. 0°C or 100°C when AC is off) are ignored instead of forwarded to HomeKit
+- **Fix unhandled errors in onSet** — all send handlers now use `_trySend()` which catches errors and returns `SERVICE_COMMUNICATION_FAILURE` to HomeKit instead of logging "Unhandled error"
+- **Fix cloud error messages** — cloud API errors now extract `payload.message` instead of dumping the full JSON response
+- **Fix `connection: "cloud"` trying local** — local connection is only attempted when `connection` is explicitly `"hybrid"`
+- **Fix service tile order** — HomeKit climate card always shows tiles in the correct order (Fan → Sleep → Display → Health → Clean → Eco → Comf. Wind) regardless of when each service was first registered
+- **Fix crash on command failure** — `_trySend` now correctly references `this.platform.api.hap` instead of the undefined `this.api`
+- **Fix malformed device cookie** — cloud API now throws an actionable error instead of crashing with a JSON parse exception
+- **Remove Temperature Step and Poll Interval settings** — both are hardcoded (1 °C step, 30 s poll); removed from Config UI and schema to prevent misconfiguration
+- **Cleaner startup log** — reduced to one line per device; removed redundant "Restoring / Updating accessory" messages
+- **Code cleanup** — `LOCAL_MODE_MAP` and `FAN_REMAP` extracted as module-level constants; cloud API default params moved to `DEVICE_PARAMS` constant
+
 ## 2.3.4
 
 - **UI: badge colors** — Cloud (teal), Hybrid (green), Local (yellow) — clearly distinct from each other

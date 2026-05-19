@@ -80,6 +80,13 @@ function httpRequest(url, options, body) {
   });
 }
 
+// Default device parameter keys fetched on every poll
+const DEVICE_PARAMS = [
+  'pwr', 'ac_mode', 'temp', 'envtemp', 'ac_mark',
+  'ac_vdir', 'ac_hdir', 'ac_slp', 'ac_health',
+  'mldprf', 'ac_clean', 'comfwind', 'scrdisp',
+];
+
 // ── AuxCloudAPI ──────────────────────────────────────────────────
 class AuxCloudAPI {
   constructor(region = 'eu') {
@@ -139,7 +146,7 @@ class AuxCloudAPI {
       this.userid = result.userid;
       return true;
     }
-    throw new Error(`Login failed: ${JSON.stringify(result)}`);
+    throw new Error(`Login failed: ${result.msg || result.status || 'unknown error'}`);
   }
 
   // ── Families ───────────────────────────────────────────────────
@@ -148,7 +155,7 @@ class AuxCloudAPI {
       headers: this._headers(),
     });
     if (result.status === 0) return result.data.familyList || [];
-    throw new Error(`Get families failed: ${JSON.stringify(result)}`);
+    throw new Error(`Get families failed: ${result.msg || result.status || 'unknown error'}`);
   }
 
   // ── Devices ────────────────────────────────────────────────────
@@ -159,7 +166,7 @@ class AuxCloudAPI {
     });
 
     if (result.status !== 0) {
-      throw new Error(`Get devices failed: ${JSON.stringify(result)}`);
+      throw new Error(`Get devices failed: ${result.msg || result.status || 'unknown error'}`);
     }
 
     const devices = result.data?.endpoints || [];
@@ -179,7 +186,12 @@ class AuxCloudAPI {
 
   // ── Get / Set device params ────────────────────────────────────
   async _actDeviceParams(device, act, params = [], vals = []) {
-    const cookieRaw = JSON.parse(Buffer.from(device.cookie, 'base64').toString());
+    let cookieRaw;
+    try {
+      cookieRaw = JSON.parse(Buffer.from(device.cookie, 'base64').toString());
+    } catch {
+      throw new Error('Device cookie is malformed — re-fetch devices in plugin settings');
+    }
     const mappedCookie = Buffer.from(JSON.stringify({
       device: {
         id: cookieRaw.terminalid,
@@ -239,17 +251,12 @@ class AuxCloudAPI {
       return out;
     }
 
-    throw new Error(`Device param ${act} failed: ${JSON.stringify(result)}`);
+    const errPayload = result?.event?.payload || {};
+    const reason = errPayload.message || errPayload.type || result?.event?.header?.name || 'unknown error';
+    throw new Error(`Device unreachable: ${reason}`);
   }
 
-  async getDeviceParams(device, params) {
-    if (!params) {
-      params = [
-        'pwr', 'ac_mode', 'temp', 'envtemp', 'ac_mark',
-        'ac_vdir', 'ac_hdir', 'ac_slp', 'ac_health',
-        'mldprf', 'ac_clean', 'comfwind', 'scrdisp',
-      ];
-    }
+  async getDeviceParams(device, params = DEVICE_PARAMS) {
     return this._actDeviceParams(device, 'get', params);
   }
 

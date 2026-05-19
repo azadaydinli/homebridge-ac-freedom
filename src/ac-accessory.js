@@ -39,9 +39,17 @@ const CLOUD_MODE = { AUTO: 4, COOL: 0, HEAT: 1, DRY: 2, FAN: 3 };
 // Conversion tables applied in pollLocal / sendFanSpeed
 const FAN_SPEED = { AUTO: 0, LOW: 1, MEDIUM: 2, HIGH: 3, TURBO: 4 };
 
-// Local ↔ canonical (cloud) fan speed conversion
-const LOCAL_TO_CLOUD_FAN = { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4 };
-const CLOUD_TO_LOCAL_FAN = { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4 };
+// Local ↔ cloud fan speed remap (mapping is self-inverse: 1↔3, others unchanged)
+const FAN_REMAP = { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4 };
+
+// Cloud mode → local protocol mode byte (AUTO=0 avoids 3-bit overflow at value 8)
+const LOCAL_MODE_MAP = {
+  [4]: 0, // AUTO
+  [0]: 1, // COOL
+  [1]: 4, // HEAT
+  [2]: 2, // DRY
+  [3]: 6, // FAN
+};
 
 class AcFreedomAccessory {
   constructor(platform, accessory, config, deviceApi) {
@@ -84,9 +92,10 @@ class AcFreedomAccessory {
     this.setupPresetSwitches();
     this.setupComfWindSwitch();
     this.setupDisplaySwitch();
+    this._reorderServices();
 
     // Start polling
-    const interval = (config.pollInterval || 30) * 1000;
+    const interval = 30000;
     this.pollTimer = setInterval(() => this.pollState(), interval);
     this.pollState();
   }
@@ -122,9 +131,13 @@ class AcFreedomAccessory {
     this.heaterCooler.getCharacteristic(C.Active)
       .onGet(() => this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE)
       .onSet(async (value) => {
-        this.state.power = value === C.Active.ACTIVE;
-        await this.sendPower(this.state.power);
-        if (!this.state.power) { this.resetFanToAuto(); this.resetSleep(); }
+        const newPower = value === C.Active.ACTIVE;
+        if (newPower === this.state.power) return;
+        this.state.power = newPower;
+        if (!newPower) this._powerOffReset();
+        this._powerJustChanged = true;
+        setTimeout(() => { this._powerJustChanged = false; }, 300);
+        await this._trySend(() => this.sendPower(newPower));
       });
 
     this.heaterCooler.getCharacteristic(C.CurrentHeaterCoolerState)
@@ -160,30 +173,43 @@ class AcFreedomAccessory {
           default:                             mode = CLOUD_MODE.AUTO; break;
         }
         this.state.mode = mode;
-        await this.sendMode(mode);
-        this.resetFanToAuto(true);
-        this.resetSleep();
+        // Wait for Active.onSet to fire first — HomeKit sends both in the same
+        // batch but order is not guaranteed; 200 ms covers the race window.
+        await new Promise(r => setTimeout(r, 200));
+        if (this._powerJustChanged) return;
+        await this._trySend(() => this.sendMode(mode));
       });
 
     this.heaterCooler.getCharacteristic(C.CurrentTemperature)
       .setProps({ minValue: -20, maxValue: 60 })
       .onGet(() => this.state.currentTemp);
 
-    const step = this.config.tempStep || 0.5;
+    const snapTemp = (v) => Math.round(v);
+
     this.heaterCooler.getCharacteristic(C.CoolingThresholdTemperature)
-      .setProps({ minValue: 16, maxValue: 32, minStep: step })
-      .onGet(() => this.state.targetTemp)
+      .setProps({ minValue: 16, maxValue: 32, minStep: 1 })
+      .onGet(() => snapTemp(this.state.targetTemp))
       .onSet(async (value) => {
-        this.state.targetTemp = value;
-        await this.sendTemperature(value);
+        const snapped = snapTemp(value);
+        this.state.targetTemp = snapped;
+        if (snapped !== value) {
+          this.heaterCooler.updateCharacteristic(C.CoolingThresholdTemperature, snapped);
+          this.heaterCooler.updateCharacteristic(C.HeatingThresholdTemperature, snapped);
+        }
+        await this._trySend(() => this.sendTemperature(snapped));
       });
 
     this.heaterCooler.getCharacteristic(C.HeatingThresholdTemperature)
-      .setProps({ minValue: 16, maxValue: 32, minStep: step })
-      .onGet(() => this.state.targetTemp)
+      .setProps({ minValue: 16, maxValue: 32, minStep: 1 })
+      .onGet(() => snapTemp(this.state.targetTemp))
       .onSet(async (value) => {
-        this.state.targetTemp = value;
-        await this.sendTemperature(value);
+        const snapped = snapTemp(value);
+        this.state.targetTemp = snapped;
+        if (snapped !== value) {
+          this.heaterCooler.updateCharacteristic(C.CoolingThresholdTemperature, snapped);
+          this.heaterCooler.updateCharacteristic(C.HeatingThresholdTemperature, snapped);
+        }
+        await this._trySend(() => this.sendTemperature(snapped));
       });
 
     this.heaterCooler.getCharacteristic(C.SwingMode)
@@ -194,7 +220,7 @@ class AcFreedomAccessory {
         const on = value === C.SwingMode.SWING_ENABLED;
         this.state.swingV = on;
         this.state.swingH = on;
-        await this.sendSwing(on, on);
+        await this._trySend(() => this.sendSwing(on, on));
       });
   }
 
@@ -227,18 +253,22 @@ class AcFreedomAccessory {
     this.fanService.getCharacteristic(C.Active)
       .onGet(() => this.state.power ? C.Active.ACTIVE : C.Active.INACTIVE)
       .onSet(async (value) => {
-        this.state.power = value === C.Active.ACTIVE;
-        await this.sendPower(this.state.power);
-        if (!this.state.power) { this.resetFanToAuto(); this.resetSleep(); }
+        const newPower = value === C.Active.ACTIVE;
+        if (newPower === this.state.power) return;
+        this.state.power = newPower;
+        if (!newPower) this._powerOffReset();
+        this._powerJustChanged = true;
+        setTimeout(() => { this._powerJustChanged = false; }, 300);
+        await this._trySend(() => this.sendPower(newPower));
       });
 
     // 0=Auto  25=Low  50=Medium  75=High  100=Turbo
     this.fanService.getCharacteristic(C.RotationSpeed)
       .setProps({ minValue: 0, maxValue: 100, minStep: 25 })
-      .onGet(() => this.fanSpeedToPercent(this.state.fanSpeed))
+      .onGet(() => this.state.power ? this.fanSpeedToPercent(this.state.fanSpeed) : 0)
       .onSet(async (value) => {
         this.state.fanSpeed = this.percentToFanSpeed(value);
-        await this.sendFanSpeed(this.state.fanSpeed);
+        await this._trySend(() => this.sendFanSpeed(this.state.fanSpeed));
       });
 
     this.heaterCooler.addLinkedService(this.fanService);
@@ -262,7 +292,7 @@ class AcFreedomAccessory {
       svc.setCharacteristic(this.Characteristic.Name, cfg.label);
 
       svc.getCharacteristic(this.Characteristic.On)
-        .onGet(() => this.state[key])
+        .onGet(() => this.state.power && this.state[key])
         .onSet(async (value) => {
           if (value) {
             for (const otherKey of Object.keys(this.presetConfigs)) {
@@ -270,7 +300,7 @@ class AcFreedomAccessory {
             }
           }
           this.state[key] = value;
-          await this.sendPreset(key, value);
+          await this._trySend(() => this.sendPreset(key, value));
           this.refreshPresetSwitches(key);
         });
 
@@ -301,10 +331,10 @@ class AcFreedomAccessory {
     this.comfWindSwitch.setCharacteristic(this.Characteristic.Name, 'Comfortable Wind');
 
     this.comfWindSwitch.getCharacteristic(this.Characteristic.On)
-      .onGet(() => this.state.comfwind)
+      .onGet(() => this.state.power && this.state.comfwind)
       .onSet(async (value) => {
         this.state.comfwind = value;
-        await this.sendComfWind(value);
+        await this._trySend(() => this.sendComfWind(value));
       });
 
     this.heaterCooler.addLinkedService(this.comfWindSwitch);
@@ -327,28 +357,22 @@ class AcFreedomAccessory {
       .onGet(() => this.state.display)
       .onSet(async (value) => {
         this.state.display = value;
-        await this.sendDisplay(value);
+        await this._trySend(() => this.sendDisplay(value));
       });
 
     this.heaterCooler.addLinkedService(this.displaySwitch);
   }
 
-  // ── Fan speed helpers ──────────────────────────────────────────
-  resetFanToAuto(sendCommand = false) {
+  // ── Power-off UI reset ─────────────────────────────────────────
+  // Updates HomeKit display only. No cloud commands — avoids interfering
+  // with the power-off command and prevents spurious device wake-up.
+  _powerOffReset() {
     this.state.fanSpeed = FAN_SPEED.AUTO;
-    if (this.fanService) {
+    this.state.sleep    = false;
+    if (this.fanService)
       this.fanService.updateCharacteristic(this.Characteristic.RotationSpeed, 0);
-    }
-    if (sendCommand) this.sendFanSpeed(FAN_SPEED.AUTO).catch(() => {});
-  }
-
-  resetSleep() {
-    if (!this.state.sleep) return;
-    this.state.sleep = false;
-    if (this.presetSwitches?.sleep) {
+    if (this.presetSwitches?.sleep)
       this.presetSwitches.sleep.updateCharacteristic(this.Characteristic.On, false);
-    }
-    this.sendPreset('sleep', false).catch(() => {});
   }
 
   // Fan speed ↔ HomeKit percent (canonical cloud numbering)
@@ -368,6 +392,7 @@ class AcFreedomAccessory {
 
   // ── Poll state ─────────────────────────────────────────────────
   async pollState() {
+    if (this._pollLockUntil && Date.now() < this._pollLockUntil) return;
     try {
       const t = this.deviceApi.type;
       if (t === 'local') {
@@ -403,8 +428,10 @@ class AcFreedomAccessory {
 
       this.state.power       = !!params[CLOUD.POWER];
       this.state.mode        = params[CLOUD.MODE]       ?? CLOUD_MODE.AUTO;
-      this.state.targetTemp  = (params[CLOUD.TEMP_TARGET]  ?? 240) / 10;
-      this.state.currentTemp = (params[CLOUD.TEMP_AMBIENT] ?? 240) / 10;
+      const rawTarget  = (params[CLOUD.TEMP_TARGET]  ?? 240) / 10;
+      const rawAmbient = (params[CLOUD.TEMP_AMBIENT] ?? 240) / 10;
+      if (rawTarget  >= 16 && rawTarget  <= 32) this.state.targetTemp  = rawTarget;
+      if (rawAmbient >= 0  && rawAmbient <= 60) this.state.currentTemp = rawAmbient;
       this.state.fanSpeed    = params[CLOUD.FAN_SPEED]  ?? FAN_SPEED.AUTO;
       this.state.swingV      = !!params[CLOUD.SWING_V];
       this.state.swingH      = !!params[CLOUD.SWING_H];
@@ -434,7 +461,7 @@ class AcFreedomAccessory {
     this.state.targetTemp  = s.temperature;
     this.state.currentTemp = s.ambientTemp;
     // Normalise local fan speed → canonical cloud numbering
-    this.state.fanSpeed    = LOCAL_TO_CLOUD_FAN[s.fanSpeed] ?? FAN_SPEED.AUTO;
+    this.state.fanSpeed    = FAN_REMAP[s.fanSpeed] ?? FAN_SPEED.AUTO;
     this.state.swingV      = s.verticalFixation === 7;
     this.state.swingH      = s.horizontalFixation === 7;
     this.state.sleep       = !!s.sleep;
@@ -466,9 +493,10 @@ class AcFreedomAccessory {
       this.heaterCooler.updateCharacteristic(C.CurrentHeaterCoolerState, hcState);
     }
 
+    const snapped = Math.round(this.state.targetTemp);
     this.heaterCooler.updateCharacteristic(C.CurrentTemperature,           this.state.currentTemp);
-    this.heaterCooler.updateCharacteristic(C.CoolingThresholdTemperature,  this.state.targetTemp);
-    this.heaterCooler.updateCharacteristic(C.HeatingThresholdTemperature,  this.state.targetTemp);
+    this.heaterCooler.updateCharacteristic(C.CoolingThresholdTemperature,  snapped);
+    this.heaterCooler.updateCharacteristic(C.HeatingThresholdTemperature,  snapped);
     this.heaterCooler.updateCharacteristic(C.SwingMode,
       (this.state.swingV || this.state.swingH) ? C.SwingMode.SWING_ENABLED : C.SwingMode.SWING_DISABLED);
 
@@ -480,11 +508,11 @@ class AcFreedomAccessory {
     }
 
     for (const [key, svc] of Object.entries(this.presetSwitches || {})) {
-      svc.updateCharacteristic(C.On, this.state[key]);
+      svc.updateCharacteristic(C.On, this.state.power && this.state[key]);
     }
 
     if (this.comfWindSwitch) {
-      this.comfWindSwitch.updateCharacteristic(C.On, this.state.comfwind);
+      this.comfWindSwitch.updateCharacteristic(C.On, this.state.power && this.state.comfwind);
     }
     if (this.displaySwitch) {
       this.displaySwitch.updateCharacteristic(C.On, this.state.display);
@@ -512,28 +540,50 @@ class AcFreedomAccessory {
     return cloudFn(); // legacy 'cloud' type
   }
 
+  // Wraps a send call for use inside onSet handlers.
+  // Suppresses poll for 5 s after any command to avoid stale cloud state overriding UI.
+  // Logs the error and throws HapStatusError so HomeKit shows failure correctly.
+  async _trySend(fn) {
+    try {
+      await fn();
+      this._pollLockUntil = Date.now() + 5000;
+    } catch (err) {
+      this.log.warn('%s: command failed: %s', this.config.name, err.message);
+      throw new this.platform.api.hap.HapStatusError(
+        this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE,
+      );
+    }
+  }
+
   // ── Send commands ──────────────────────────────────────────────
   async sendPower(on) {
     return this._send(
-      () => { const a = this._localApi; a.state.power = on ? 1 : 0; return a.setState(); },
-      () => this.cloudSet({ [CLOUD.POWER]: on ? 1 : 0 }),
+      () => {
+        const a = this._localApi;
+        a.state.power = on ? 1 : 0;
+        if (on)  a.state.mode     = LOCAL_MODE_MAP[this.state.mode] ?? 0;
+        if (!on) a.state.fanSpeed = 0;
+        return a.setState();
+      },
+      () => {
+        const p = { [CLOUD.POWER]: on ? 1 : 0 };
+        if (on)  p[CLOUD.MODE]      = this.state.mode;
+        if (!on) p[CLOUD.FAN_SPEED] = 0;
+        return this.cloudSet(p);
+      },
     );
   }
 
   async sendMode(mode) {
-    // AUTO is 0 in local protocol (mode=8 would overflow the 3-bit field)
-    const localModeMap = {
-      [CLOUD_MODE.AUTO]: 0, [CLOUD_MODE.COOL]: 1,
-      [CLOUD_MODE.HEAT]: 4, [CLOUD_MODE.DRY]: 2, [CLOUD_MODE.FAN]: 6,
-    };
+    const pwr = this.state.power ? 1 : 0;
     return this._send(
       () => {
         const a = this._localApi;
-        a.state.power = 1;
-        a.state.mode  = localModeMap[mode] ?? 0;
+        a.state.power = pwr;
+        a.state.mode  = LOCAL_MODE_MAP[mode] ?? 0;
         return a.setState();
       },
-      () => this.cloudSet({ [CLOUD.POWER]: 1, [CLOUD.MODE]: mode }),
+      () => this.cloudSet({ [CLOUD.POWER]: pwr, [CLOUD.MODE]: mode }),
     );
   }
 
@@ -546,7 +596,7 @@ class AcFreedomAccessory {
 
   async sendFanSpeed(speed) {
     // speed is canonical cloud numbering; convert for local
-    const localSpeed = CLOUD_TO_LOCAL_FAN[speed] ?? 0;
+    const localSpeed = FAN_REMAP[speed] ?? 0;
     return this._send(
       () => {
         const a = this._localApi;
@@ -607,6 +657,40 @@ class AcFreedomAccessory {
 
   async cloudSet(params) {
     await this._cloudApi.setDeviceParams(this._cloudDevice, params);
+  }
+
+  // ── Service ordering ───────────────────────────────────────────
+  // Sorts accessory.services so HomeKit always shows tiles in the
+  // correct order regardless of when each service was first added.
+  _reorderServices() {
+    const rank = (svc) => {
+      const s = svc.subtype;
+      if (svc.UUID === this.Service.AccessoryInformation.UUID) return 0;
+      if (svc.UUID === this.Service.HeaterCooler.UUID)         return 1;
+      if (s === 'fan')      return 2;
+      if (s === 'sleep')    return 3;
+      if (s === 'display')  return 4;
+      if (s === 'health')   return 5;
+      if (s === 'clean')    return 6;
+      if (s === 'eco')      return 7;
+      if (s === 'comfwind') return 8;
+      return 99;
+    };
+    this.accessory.services.sort((a, b) => rank(a) - rank(b));
+
+    // Rebuild linkedServices explicitly in the desired order so the HAP
+    // "linked" array is sent correctly regardless of IID values.
+    const linked = [
+      this.fanService,
+      this.presetSwitches?.sleep,
+      this.displaySwitch,
+      this.presetSwitches?.health,
+      this.presetSwitches?.clean,
+      this.presetSwitches?.eco,
+      this.comfWindSwitch,
+    ].filter(Boolean);
+    this.heaterCooler.linkedServices.length = 0;
+    for (const svc of linked) this.heaterCooler.linkedServices.push(svc);
   }
 
   // ── Cleanup ────────────────────────────────────────────────────

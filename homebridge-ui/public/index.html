@@ -224,7 +224,6 @@
     fan: 'Fan',                  sleep: 'Sleep',            display: 'Display',
     health: 'Health',            clean: 'Clean',            eco: 'Eco',
     comfWind: 'Comf. Wind',
-    tempStep: 'Temperature Step', pollInterval: 'Poll Interval',
     addDevice: 'Add Device',     remove: 'Remove',
     hybrid: 'Hybrid',            cloudCredentials: 'Cloud Credentials',
     fetching: 'Fetching…',       devicesFound: 'devices found',
@@ -276,32 +275,6 @@
     `;
   }
 
-  function settingsRow(d, i) {
-    const step = d.tempStep !== undefined ? d.tempStep : 0.5;
-    const poll = d.pollInterval || 30;
-    return `
-      <div class="fieldset" style="margin-bottom:12px">
-        <div class="row-2">
-          <div class="fg" style="margin-bottom:0">
-            <label>${t.tempStep||'Temperature Step'}</label>
-            <select class="d-field" data-i="${i}" data-f="tempStep">
-              <option value="0.5" ${step==0.5?'selected':''}>0.5 °C</option>
-              <option value="1"   ${step==1  ?'selected':''}>1.0 °C</option>
-            </select>
-          </div>
-          <div class="fg" style="margin-bottom:0">
-            <label>${t.pollInterval||'Poll Interval'}</label>
-            <select class="d-field" data-i="${i}" data-f="pollInterval">
-              <option value="5"  ${poll==5 ?'selected':''}>5 seconds</option>
-              <option value="10" ${poll==10?'selected':''}>10 seconds</option>
-              <option value="20" ${poll==20?'selected':''}>20 seconds</option>
-              <option value="30" ${poll==30?'selected':''}>30 seconds</option>
-              <option value="60" ${poll==60?'selected':''}>60 seconds</option>
-            </select>
-          </div>
-        </div>
-      </div>`;
-  }
 
   /* ── Render cloud device card ─────────────────────────────── */
   function renderCloudDevice(d, i) {
@@ -310,8 +283,6 @@
     const conn      = (d.connection === 'local' || !d.connection) ? 'cloud' : d.connection;
     const isHybrid  = conn === 'hybrid';
     const local     = d.local || {};
-    const step      = d.tempStep !== undefined ? d.tempStep : 0.5;
-    const poll      = d.pollInterval || 30;
     const cardClass = isHybrid ? 'hybrid-card' : '';
     const badge     = isHybrid ? (t.hybrid||'Hybrid') : (t.cloud||'Cloud');
 
@@ -371,7 +342,6 @@
             </div>
           </div>
 
-          ${settingsRow(d, i)}
           ${featToggles(d, i)}
         </div>
       </div>`;
@@ -382,8 +352,6 @@
     const isOpen = expanded.has(i);
     const name   = d.name || `Local #${li + 1}`;
     const local  = d.local || {};
-    const step   = d.tempStep !== undefined ? d.tempStep : 0.5;
-    const poll   = d.pollInterval || 30;
 
     return `
       <div class="device-card" id="dev-card-${i}">
@@ -421,7 +389,6 @@
             </div>
           </div>
 
-          ${settingsRow(d, i)}
           ${featToggles(d, i)}
         </div>
       </div>`;
@@ -572,7 +539,6 @@
               local:      { ip: '', mac: '' },
               presets:    { sleep: true, health: false, eco: false, clean: false },
               showFan: true, showComfWind: false, showDisplay: false,
-              tempStep: 0.5, pollInterval: 30,
             });
             expanded.add(config.devices.length - 1);
             added++;
@@ -602,7 +568,6 @@
         local: { ip: '', mac: '' },
         presets: { sleep: true, health: false, eco: false, clean: false },
         showFan: true, showComfWind: false, showDisplay: false,
-        tempStep: 0.5, pollInterval: 30,
       });
       expanded.add(i);
       render(); save();
@@ -634,13 +599,11 @@
       });
     });
 
-    /* Device-level fields (name, tempStep, pollInterval) */
+    /* Device-level fields (name) */
     document.querySelectorAll('.d-field').forEach(el => {
       el.addEventListener('change', () => {
         const i = +el.dataset.i, f = el.dataset.f;
-        config.devices[i][f] = (f === 'tempStep')    ? (parseFloat(el.value) || 0.5)
-          : (f === 'pollInterval') ? (parseInt(el.value)   || 30)
-          : el.value;
+        config.devices[i][f] = el.value;
         save();
       });
       el.addEventListener('input', () => {

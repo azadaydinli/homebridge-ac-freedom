@@ -34,13 +34,11 @@ class AcFreedomPlatform {
     if (!api || !config) return;
 
     this.api.on('didFinishLaunching', () => {
-      this.log.info('AC Freedom platform loaded');
       this.discoverDevices().catch(err => this.log.error('Fatal: %s', err.message));
     });
   }
 
   configureAccessory(accessory) {
-    this.log.info('Restoring cached accessory: %s', accessory.displayName);
     this.accessories.set(accessory.UUID, accessory);
   }
 
@@ -72,7 +70,6 @@ class AcFreedomPlatform {
     const api = new AuxCloudAPI(cloudCreds.region || 'eu');
     try {
       await api.login(cloudCreds.email, cloudCreds.password);
-      this.log.info('Cloud login successful: %s', cloudCreds.email);
 
       const families = await api.getFamilies();
       const allDevices = [];
@@ -80,7 +77,7 @@ class AcFreedomPlatform {
         const devs = await api.getDevices(fam.familyid);
         allDevices.push(...devs);
       }
-      this.log.info('Found %d cloud device(s)', allDevices.length);
+      this.log.info('Cloud: %s — %d device(s)', cloudCreds.email, allDevices.length);
       return { api, devices: allDevices };
     } catch (err) {
       this.log.error('Cloud login failed: %s', err.message);
@@ -114,12 +111,10 @@ class AcFreedomPlatform {
 
     const existingAccessory = this.accessories.get(uuid);
     if (existingAccessory) {
-      this.log.info('Updating existing accessory: %s', deviceConfig.name);
       const instance = new AcFreedomAccessory(this, existingAccessory, deviceConfig, deviceApi);
       this.instances.set(uuid, instance);
       this.api.updatePlatformAccessories([existingAccessory]);
     } else {
-      this.log.info('Adding new accessory: %s', deviceConfig.name);
       const accessory = new this.api.platformAccessory(deviceConfig.name, uuid);
       const instance = new AcFreedomAccessory(this, accessory, deviceConfig, deviceApi);
       this.instances.set(uuid, instance);
@@ -184,40 +179,25 @@ class AcFreedomPlatform {
       }
     }
 
-    // Try local connection (optional)
+    // Try local connection only when explicitly set to hybrid mode
     let localApi = null;
     const localCfg = deviceConfig.local;
-    if (localCfg?.ip && localCfg?.mac) {
+    if (deviceConfig.connection === 'hybrid' && localCfg?.ip && localCfg?.mac) {
       const broadlink = new BroadlinkAcApi(localCfg.ip, localCfg.mac);
       try {
         const connected = await broadlink.connect();
         if (connected) {
-          this.log.info(
-            'Hybrid device %s: local connected at %s (preferred)',
-            deviceConfig.name, localCfg.ip,
-          );
           localApi = broadlink;
         } else {
-          this.log.warn(
-            'Hybrid device %s: local connect failed at %s — using cloud fallback',
-            deviceConfig.name, localCfg.ip,
-          );
+          this.log.warn('%s: local connect failed at %s — using cloud', deviceConfig.name, localCfg.ip);
         }
       } catch (err) {
-        this.log.warn(
-          'Hybrid device %s: local connect error (%s) — using cloud fallback',
-          deviceConfig.name, err.message,
-        );
+        this.log.warn('%s: local connect error (%s) — using cloud', deviceConfig.name, err.message);
       }
     }
 
-    this.log.info(
-      'Hybrid device %s: %s (%s) via %s',
-      deviceConfig.name,
-      cloudDevice.friendlyName || 'AUX AC',
-      cloudDevice.endpointId,
-      localApi ? 'local+cloud' : 'cloud only',
-    );
+    const mode = localApi ? `local+cloud (${localCfg.ip})` : 'cloud';
+    this.log.info('%s: %s', deviceConfig.name, mode);
 
     return {
       type:        'hybrid',
@@ -239,13 +219,13 @@ class AcFreedomPlatform {
     try {
       const connected = await api.connect();
       if (!connected) {
-        this.log.error('Failed to connect to local device at %s', local.ip);
+        this.log.error('%s: local connect failed at %s', config.name, local.ip);
         return null;
       }
-      this.log.info('Local device connected: %s', local.ip);
+      this.log.info('%s: local (%s)', config.name, local.ip);
       return { type: 'local', api };
     } catch (err) {
-      this.log.error('Local connection failed: %s', err.message);
+      this.log.error('%s: local connect error — %s', config.name, err.message);
       return null;
     }
   }
