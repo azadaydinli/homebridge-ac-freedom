@@ -31,13 +31,13 @@ A [Homebridge](https://homebridge.io) plugin for controlling **AUX-based air con
   - Self Clean
   - Comfortable Wind
 - **Display** switch — LED display on/off
-- **Auto-reset** — fan and sleep reset to default when AC turns on/off or mode changes
-- **Hybrid** — single cloud login at platform level; optional IP + MAC per device for local Broadlink UDP (local preferred, cloud fallback)
-- **Local** — Direct Broadlink UDP only, no internet required
+- **Auto-reset** — fan resets to Auto and Sleep turns off when the AC is powered off
+- **Consistent tile order** — Fan is always first, followed by Sleep, Display, Health, Clean, Eco, Comf. Wind
+- **Hybrid** — single cloud login at platform level; optional IP + MAC per device for direct local Broadlink UDP (local preferred, cloud fallback)
+- **Local** — direct Broadlink UDP only, no internet required
 - **Multi-device** — configure as many ACs as needed
 - **Custom config UI** — built-in Homebridge UI with Fetch Devices button
 - Homebridge v1 & v2 compatible
-- English UI
 
 ---
 
@@ -196,8 +196,6 @@ Required for Hybrid mode. Configured once, shared by all hybrid devices.
 | `name` | string | Yes | — | Device name in HomeKit |
 | `connection` | string | No | `"hybrid"` | `"hybrid"` or `"local"` |
 | `endpointId` | string | No | — | Cloud device ID (auto-detected if empty) |
-| `pollInterval` | integer | No | `30` | Polling interval in seconds (5–300) |
-| `tempStep` | number | No | `0.5` | Temperature step: `0.5` or `1` |
 
 ### Local Settings (`local` object, per device)
 
@@ -218,7 +216,7 @@ Required for Hybrid mode. Configured once, shared by all hybrid devices.
 | `showComfWind` | boolean | `false` | Comfortable Wind switch |
 | `showDisplay` | boolean | `false` | Display (LED) switch |
 
-> **Tip:** For a clean HomeKit appearance, enable **Fan** and only one preset mode — **Sleep** is the recommended choice.
+> **Tip:** For a clean HomeKit appearance, enable only the features you use. **Fan** and **Sleep** are enabled by default — most users need nothing else.
 
 ---
 
@@ -226,13 +224,11 @@ Required for Hybrid mode. Configured once, shared by all hybrid devices.
 
 Once configured, the AC appears as a **HeaterCooler** tile. Tapping it reveals:
 
-- Temperature control with heating/cooling thresholds
+- Temperature control (1 °C steps, 16–32 °C)
 - Mode selector — Auto / Heat / Cool
 - Fan speed slider — 0% Auto · 25% Low · 50% Medium · 75% High · 100% Turbo
 - Swing toggle
-- Preset switches — Sleep, Health, Eco, Clean, Comfortable Wind, Display
-
-All linked services appear as tiles inside the climate card.
+- Linked service tiles in a fixed order: Fan → Sleep → Display → Health → Clean → Eco → Comf. Wind
 
 ---
 
@@ -246,7 +242,7 @@ All linked services appear as tiles inside the climate card.
 | Works remotely | Yes | No |
 | Local fallback | Yes (when IP + MAC configured) | — |
 
-> ¹ **Hybrid + IP/MAC:** if internet is unavailable at startup, the device starts in local-only mode automatically. Full hybrid resumes on the next restart when internet is available.
+> ¹ **Hybrid + IP/MAC:** if internet is unavailable at Homebridge startup, the device starts in local-only mode automatically. Full hybrid resumes on the next restart when internet is available.
 
 ---
 
@@ -258,18 +254,21 @@ All linked services appear as tiles inside the climate card.
 - Check the `region` matches your account region
 - Logging into the AC Freedom app may invalidate the plugin session — restart Homebridge after using the app
 
-**Device not found**
+**Device not found after Fetch**
 - Leave `endpointId` empty for auto-detection (first discovered device is used)
 - Use the **Fetch** button in the Homebridge UI to discover and auto-fill your device IDs
+- If the device is missing from the cloud list, power cycle the AC and try again
 
-**"Server busy" errors**
-- These are transient and automatically suppressed
-- If persistent, increase `pollInterval` to 60 or higher
-
-**AC not responding**
+**AC not responding / "Service Communication Failure" in HomeKit**
 - Check the AC is powered on and connected to Wi-Fi
-- Local mode: Homebridge and AC must be on the same network
+- Local mode: Homebridge and the AC must be on the same network
 - Try restarting Homebridge
+
+**"Server busy" errors in logs**
+- These are transient cloud API errors and are automatically suppressed — no action needed
+
+**Tile order is wrong in HomeKit**
+- Remove the accessory from the Home app (the individual tile, not the whole bridge), then restart Homebridge — it will re-appear with the correct order
 
 ---
 
