@@ -154,17 +154,17 @@
   .toggle-row { display: flex; gap: 6px; }
   .toggle-item {
     flex: 1; min-width: 0;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
+    display: flex; align-items: center; justify-content: center;
     padding: 7px 4px; border-radius: 7px;
     border: 1px solid var(--border); background: var(--card-bg);
-    cursor: pointer; font-size: 11px; font-weight: 500; color: var(--text);
-    white-space: nowrap; transition: border-color .15s, background .15s;
+    cursor: pointer; font-size: 11px; font-weight: 500; color: var(--text-muted);
+    white-space: nowrap; transition: border-color .15s, background .15s, color .15s;
+    user-select: none;
   }
-  .toggle-item:hover { border-color: var(--accent); }
-  .toggle-item input[type="checkbox"] {
-    width: 13px; height: 13px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer;
+  .toggle-item:not(.on):hover { border-color: #9ca3af; }
+  .toggle-item.on {
+    background: #16a34a; border-color: #16a34a; color: #fff; font-weight: 600;
   }
-  .toggle-item.checked { border-color: var(--accent-border); background: var(--accent-light); }
 
   /* ── Fieldset ── */
   .fieldset {
@@ -253,23 +253,22 @@
   function featToggles(d, i) {
     const presets = d.presets || {};
     const feats = [
-      { key: 'showFan',      label: t.fan||'Fan',             val: bool(d.showFan) },
-      { key: 'sleep',        label: t.sleep||'Sleep',          val: bool(presets.sleep),   preset: true },
-      { key: 'showDisplay',  label: t.display||'Display',      val: bool(d.showDisplay) },
-      { key: 'health',       label: t.health||'Health',        val: bool(presets.health),  preset: true },
-      { key: 'clean',        label: t.clean||'Clean',          val: bool(presets.clean),   preset: true },
-      { key: 'eco',          label: t.eco||'Eco',              val: bool(presets.eco),     preset: true },
-      { key: 'showComfWind', label: t.comfWind||'Comf. Wind',  val: bool(d.showComfWind) },
+      { key: 'showFan',      label: t.fan||'Fan',            val: bool(d.showFan) },
+      { key: 'sleep',        label: t.sleep||'Sleep',         val: bool(presets.sleep),   preset: true },
+      { key: 'showDisplay',  label: t.display||'Display',     val: bool(d.showDisplay) },
+      { key: 'health',       label: t.health||'Health',       val: bool(presets.health),  preset: true },
+      { key: 'clean',        label: t.clean||'Clean',         val: bool(presets.clean),   preset: true },
+      { key: 'eco',          label: t.eco||'Eco',             val: bool(presets.eco),     preset: true },
+      { key: 'showComfWind', label: t.comfWind||'Comf. Wind', val: bool(d.showComfWind) },
     ];
+
     return `
     <div class="toggle-row">
       ${feats.map(f => `
-        <label class="toggle-item ${f.val ? 'checked' : ''}">
-          <input type="checkbox" class="feat-cb"
-            data-i="${i}" data-k="${f.key}" data-preset="${f.preset||false}"
-            ${f.val ? 'checked' : ''}>
+        <div class="toggle-item ${f.val ? 'on' : ''}"
+          data-i="${i}" data-k="${f.key}" data-preset="${f.preset||false}">
           ${f.label}
-        </label>
+        </div>
       `).join('')}
     </div>
     `;
@@ -624,19 +623,18 @@
       });
     });
 
-    /* Feature checkboxes */
-    document.querySelectorAll('.feat-cb').forEach(cb => {
-      cb.closest('.toggle-item').classList.toggle('checked', cb.checked);
-      cb.addEventListener('change', () => {
-        const i = +cb.dataset.i, k = cb.dataset.k;
-        const isPreset = cb.dataset.preset === 'true';
+    /* Feature toggles */
+    document.querySelectorAll('.toggle-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const isOn = el.classList.toggle('on');
+        const i = +el.dataset.i, k = el.dataset.k;
+        const isPreset = el.dataset.preset === 'true';
         if (isPreset) {
           if (!config.devices[i].presets) config.devices[i].presets = {};
-          config.devices[i].presets[k] = cb.checked;
+          config.devices[i].presets[k] = isOn;
         } else {
-          config.devices[i][k] = cb.checked;
+          config.devices[i][k] = isOn;
         }
-        cb.closest('.toggle-item').classList.toggle('checked', cb.checked);
         save();
       });
     });

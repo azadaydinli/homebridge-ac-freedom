@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.6
+
+- **Config UI: feature toggles redesigned** — checkboxes removed; each feature is now a colour-coded pill: bright green when enabled, muted grey when disabled
+
 ## 2.3.5
 
 - **Fix double beep on power-on** — `TargetHeaterCoolerState` command is suppressed when fired within 200 ms of a power command; mode is already included in `sendPower`
