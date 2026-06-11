@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.7
+
+- **Fix inverted swing mode on local connection** (#1) — local Broadlink protocol uses fixation `0` = swinging and `7` = fixed; the plugin had it reversed, so the HomeKit swing toggle showed the opposite of the actual louvre state. Cloud connection was unaffected.
+
 ## 2.3.6
 
 - **Config UI: feature toggles redesigned** — checkboxes removed; each feature is now a colour-coded pill: bright green when enabled, muted grey when disabled

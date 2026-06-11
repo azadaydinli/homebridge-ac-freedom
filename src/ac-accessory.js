@@ -462,8 +462,9 @@ class AcFreedomAccessory {
     this.state.currentTemp = s.ambientTemp;
     // Normalise local fan speed → canonical cloud numbering
     this.state.fanSpeed    = FAN_REMAP[s.fanSpeed] ?? FAN_SPEED.AUTO;
-    this.state.swingV      = s.verticalFixation === 7;
-    this.state.swingH      = s.horizontalFixation === 7;
+    // Local fixation: 0 = swinging, 7 = fixed
+    this.state.swingV      = s.verticalFixation === 0;
+    this.state.swingH      = s.horizontalFixation === 0;
     this.state.sleep       = !!s.sleep;
     this.state.health      = !!s.health;
     this.state.eco         = !!s.mildew;
@@ -613,8 +614,9 @@ class AcFreedomAccessory {
     return this._send(
       () => {
         const a = this._localApi;
-        a.state.verticalFixation   = v ? 7 : 0;
-        a.state.horizontalFixation = h ? 7 : 0;
+        // Local fixation: 0 = swinging, 7 = fixed
+        a.state.verticalFixation   = v ? 0 : 7;
+        a.state.horizontalFixation = h ? 0 : 7;
         return a.setState();
       },
       () => this.cloudSet({ [CLOUD.SWING_V]: v ? 1 : 0, [CLOUD.SWING_H]: h ? 1 : 0 }),
