@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.8
+
+- **Fix Fetch stuck on "Fetching…"** (#2) — the config UI Fetch button called `getDeviceParams` for every discovered device (each a separate HTTP call with a 15 s timeout), causing the total request time to exceed the UI framework timeout and leaving the button permanently stuck. Device param fetching is now skipped during the UI fetch — only the device name and ID are needed at that point.
+
 ## 2.3.7
 
 - **Fix inverted swing mode on local connection** (#1) — local Broadlink protocol uses fixation `0` = swinging and `7` = fixed; the plugin had it reversed, so the HomeKit swing toggle showed the opposite of the actual louvre state. Cloud connection was unaffected.

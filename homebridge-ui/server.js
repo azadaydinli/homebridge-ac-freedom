@@ -36,7 +36,7 @@ class AcFreedomUiServer extends HomebridgePluginUiServer {
     const devices  = [];
 
     for (const fam of families) {
-      const devs = await api.getDevices(fam.familyid);
+      const devs = await api.getDevices(fam.familyid, { fetchParams: false });
       devices.push(...devs);
     }
 

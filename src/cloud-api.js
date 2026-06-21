@@ -159,7 +159,7 @@ class AuxCloudAPI {
   }
 
   // ── Devices ────────────────────────────────────────────────────
-  async getDevices(familyId) {
+  async getDevices(familyId, { fetchParams = true } = {}) {
     const result = await this._request('POST', 'appsync/group/dev/query?action=select', {
       headers: this._headers({ familyid: familyId }),
       body: '{"pids":[]}',
@@ -171,13 +171,15 @@ class AuxCloudAPI {
 
     const devices = result.data?.endpoints || [];
 
-    for (const dev of devices) {
-      dev.params = {};
-      try {
-        const params = await this.getDeviceParams(dev);
-        if (params) dev.params = params;
-      } catch {
-        // Ignore param fetch errors on initial load
+    if (fetchParams) {
+      for (const dev of devices) {
+        dev.params = {};
+        try {
+          const params = await this.getDeviceParams(dev);
+          if (params) dev.params = params;
+        } catch {
+          // Ignore param fetch errors on initial load
+        }
       }
     }
 
