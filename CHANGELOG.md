@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.9
+
+- **Fix Fetch stuck on "Fetching…" (round 2)** (#3) — added an overall 20-second timeout around the entire Fetch flow using `Promise.race`; `req.setTimeout` only fires after TCP is established so a DNS-level hang could still block indefinitely. Now the button always resets with a clear error message within 20 seconds regardless of where the hang occurs.
+- **Fix stale OFF state after reboot** (#6) — if the initial poll at startup fails (network not ready immediately after boot), the plugin now automatically retries after 8 seconds instead of waiting the full 30-second poll interval.
+
 ## 2.3.8
 
 - **Fix Fetch stuck on "Fetching…"** (#2) — the config UI Fetch button called `getDeviceParams` for every discovered device (each a separate HTTP call with a 15 s timeout), causing the total request time to exceed the UI framework timeout and leaving the button permanently stuck. Device param fetching is now skipped during the UI fetch — only the device name and ID are needed at that point.

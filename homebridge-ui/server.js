@@ -12,6 +12,8 @@
 
 const { HomebridgePluginUiServer } = require('@homebridge/plugin-ui-utils');
 
+const FETCH_TIMEOUT_MS = 20000;
+
 class AcFreedomUiServer extends HomebridgePluginUiServer {
   constructor() {
     super();
@@ -29,6 +31,17 @@ class AcFreedomUiServer extends HomebridgePluginUiServer {
       throw new Error('Email and password are required');
     }
 
+    // Overall timeout: ensures the server always responds even if a
+    // network call hangs at the DNS or TCP-connect stage (req.setTimeout
+    // only fires after the socket is open, so it cannot guard against DNS hangs).
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timed out — check your region setting and internet connection')), FETCH_TIMEOUT_MS)
+    );
+
+    return Promise.race([this._doFetch(AuxCloudAPI, email, password, region), timeoutPromise]);
+  }
+
+  async _doFetch(AuxCloudAPI, email, password, region) {
     const api = new AuxCloudAPI(region || 'eu');
     await api.login(email, password);
 

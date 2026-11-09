@@ -94,10 +94,11 @@ class AcFreedomAccessory {
     this.setupDisplaySwitch();
     this._reorderServices();
 
-    // Start polling
+    // Start polling — retry once after 8 s if the boot poll fails
+    // (network/cloud may not be ready immediately after Homebridge starts)
     const interval = 30000;
     this.pollTimer = setInterval(() => this.pollState(), interval);
-    this.pollState();
+    this.pollState().then(ok => { if (!ok) setTimeout(() => this.pollState(), 8000); });
   }
 
   // ── Unified API accessors ──────────────────────────────────────
@@ -392,7 +393,7 @@ class AcFreedomAccessory {
 
   // ── Poll state ─────────────────────────────────────────────────
   async pollState() {
-    if (this._pollLockUntil && Date.now() < this._pollLockUntil) return;
+    if (this._pollLockUntil && Date.now() < this._pollLockUntil) return true;
     try {
       const t = this.deviceApi.type;
       if (t === 'local') {
@@ -404,8 +405,10 @@ class AcFreedomAccessory {
         await this.pollHybrid();
       }
       this.updateCharacteristics();
+      return true;
     } catch (err) {
       this.log.warn('Poll failed: %s', err.message);
+      return false;
     }
   }
 
